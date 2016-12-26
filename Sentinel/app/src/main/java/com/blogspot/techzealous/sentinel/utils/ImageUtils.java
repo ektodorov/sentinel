@@ -84,22 +84,7 @@ public class ImageUtils {
      * @param aBitmapPrev bitmap from the previous frame
      * @param aBitmapCurrent bitmap from the current frame
      * @param aSampleSize sample size to shrink the bitmaps before doing the difference calculations.
-     * @param aThreshold do not detect difference if the difference between the images is less than:
-        -16777216, RGBA 0, 0, 0, 255, 0%<br>
-        -16119286, RGBA 10, 10, 10, 255, 4%<br>
-        -15132391, RGBA, 25, 25, 25, 255, 10%<br>
-        -14211289, RGBA, 39, 39, 39, 255, 15%<br>
-        -13421773, RGBA, 51, 51, 51, 255, 20%<br>
-        -12566464, RGBA, 64, 64, 64, 255, 25%<br>
-        -11776948, RGBA, 76, 76, 76, 255, 30%<br>
-        -10921639, RGBA, 89, 89, 89, 255, 35%<br>
-        -10066330, RGBA, 102, 102, 102, 255, 40%<br>
-        -9211021, RGBA, 115, 115, 115, 255, 45%<br>
-        -8355712, RGBA, 128, 128, 128. 255, 50%<br>
-        -7566196, RGBA, 140, 140, 140, 255, 55%<br>
-        -6710887, RGBA, 153, 153, 153, 255, 60%<br>
-        -5855578, RGBA, 166, 166, 166, 255, 65%<br>
-        -5000269, RGBA, 179, 179, 179, 255, 70%<br>
+     * @param aThreshold do not detect difference if the difference between the images is less than the threshold
      * @return Rect - rectangle of the area that is different between the two images
      */
     public Rect getDifference(Point aPointStabilizationOffset, Bitmap aBitmapPrev, Bitmap aBitmapCurrent,
@@ -257,21 +242,33 @@ public class ImageUtils {
     }
 
     public static int calculateSampleSize(int sourceWidth, int sourceHeight, int reqWidth, int reqHeight) {
-        Log.i(TAG, "calculateSampleSize, sourceWidth=" + sourceWidth + ", sourceHeight=" + sourceHeight +
-                ", reqWidth=" + reqWidth + ", reqHeight=" + reqHeight);
         int sampleSize = 1;
         if (sourceHeight > reqHeight || sourceWidth > reqWidth) {
-            int heightRatio = (int)((float)sourceHeight / (float)reqHeight);
-            int widthRatio = (int)((float)sourceWidth / (float)reqWidth);
+
+		    /* Calculate ratios of height and width to requested height and width */
+		    /* This rounds down */
+            //int heightRatio = Math.round((float) sourceHeight / (float) reqHeight);
+            //int widthRatio = Math.round((float) sourceWidth / (float) reqWidth);
+
+		    /* This rounds up */
+            int heightRatio = (int)Math.ceil((double) sourceHeight / (double) reqHeight);
+            int widthRatio = (int)Math.ceil((double) sourceWidth / (double) reqWidth);
 
 		    /* Choose the higher ratio as sampleSize value */
             if(heightRatio > widthRatio) {sampleSize = heightRatio;} else {sampleSize = widthRatio;}
-            /* Round to the nearest even number. */
-            while(sampleSize % 2 != 0) {
-                sampleSize++;
-            }
         }
-        Log.i(TAG, "calculateSampleSize, sampleSize=" + sampleSize);
+        return sampleSize;
+    }
+
+    public static int calculateSampleSizePowerOfTwo(int sourceWidth, int sourceHeight, int reqWidth, int reqHeight, boolean aRoundUp)
+    {
+        int sampleSize = calculateSampleSize(sourceWidth, sourceHeight, reqWidth, reqHeight);
+
+        if(sampleSize <= 2) {return 2;}
+
+        while((sampleSize & (sampleSize - 1)) != 0) {
+            if(aRoundUp) {sampleSize++;} else {sampleSize--;}
+        }
         return sampleSize;
     }
 }

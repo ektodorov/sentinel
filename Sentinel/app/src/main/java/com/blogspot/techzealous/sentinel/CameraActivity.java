@@ -113,44 +113,61 @@ public class CameraActivity extends AppCompatActivity {
                 }
 
                 ImageUtils imageUtils = new ImageUtils();
-                Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, mSampleSize);
-                Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
-                        ConstantsS.THRESHOLD_30);
+                if(ConstantsS.isStabilizationEnabled()) {
+                    Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, mSampleSize);
+                    Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                            ConstantsS.getThresholdStabilization());
 
-                if(rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
-                        || rect.right <= rect.left || rect.bottom <= rect.top) {
-                    Rect rectDiff = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
-                            ConstantsS.THRESHOLD_15);
+                    if (rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
+                            || rect.right <= rect.left || rect.bottom <= rect.top) {
+                        Rect rectDiff = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                                ConstantsS.getThresholdDifference());
+
+                        mBitmapPrevious.recycle();
+                        mBitmapPrevious = mBitmapCurrent;
+
+                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+
+                        mHandlerMain.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageViewDiff.setImageBitmap(bitmapRect);
+                            }
+                        });
+                    } else {
+                        Bitmap bitmapPreviousTemp = Bitmap.createBitmap(mBitmapPrevious, rect.left, rect.top,
+                                (rect.right - rect.left), (rect.bottom - rect.top));
+                        Bitmap bitmapCurrentTemp = Bitmap.createBitmap(mBitmapCurrent, rect.left, rect.top,
+                                (rect.right - rect.left), (rect.bottom - rect.top));
+                        Rect rectDiff = imageUtils.getDifference(null, bitmapPreviousTemp, bitmapCurrentTemp, mSampleSize,
+                                ConstantsS.getThresholdDifference());
+                        rectDiff.left = rectDiff.left + rect.left;
+                        rectDiff.top = rectDiff.top + rect.top;
+                        rectDiff.right = rectDiff.right + rect.left;
+                        rectDiff.bottom = rectDiff.bottom + rect.top;
+
+                        mBitmapPrevious.recycle();
+                        mBitmapPrevious = mBitmapCurrent;
+
+                        //display both rectangles
+                        //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+
+                        mHandlerMain.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageViewDiff.setImageBitmap(bitmapRect);
+                            }
+                        });
+                    }
+                } else {
+                    Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                            ConstantsS.getThresholdDifference());
 
                     mBitmapPrevious.recycle();
                     mBitmapPrevious = mBitmapCurrent;
 
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
-
-                    mHandlerMain.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mImageViewDiff.setImageBitmap(bitmapRect);
-                        }
-                    });
-                } else {
-                    Bitmap bitmapPreviousTemp = Bitmap.createBitmap(mBitmapPrevious, rect.left, rect.top,
-                            (rect.right - rect.left), (rect.bottom - rect.top));
-                    Bitmap bitmapCurrentTemp = Bitmap.createBitmap(mBitmapCurrent, rect.left, rect.top,
-                            (rect.right - rect.left), (rect.bottom - rect.top));
-                    Rect rectDiff = imageUtils.getDifference(null, bitmapPreviousTemp, bitmapCurrentTemp, mSampleSize,
-                            ConstantsS.THRESHOLD_15);
-                    rectDiff.left = rectDiff.left + rect.left;
-                    rectDiff.top = rectDiff.top + rect.top;
-                    rectDiff.right = rectDiff.right + rect.left;
-                    rectDiff.bottom = rectDiff.bottom + rect.top;
-
-                    mBitmapPrevious.recycle();
-                    mBitmapPrevious = mBitmapCurrent;
-
-                    //display both rectangles
-                    //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
-                    final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
 
                     mHandlerMain.post(new Runnable() {
                         @Override
@@ -192,11 +209,12 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
                 Log.i(TAG, "onSurfaceTextureDestroyed");
-                if(mCamera != null) {return false;}
                 mIsTextureViewDestroyed = true;
-                mCamera.stopPreview();
-                mCamera.release();
                 mHandlerMain.removeCallbacks(mRunnableDiffPost);
+                if(mCamera != null) {
+                    mCamera.stopPreview();
+                    mCamera.release();
+                }
                 return true;
             }
 
