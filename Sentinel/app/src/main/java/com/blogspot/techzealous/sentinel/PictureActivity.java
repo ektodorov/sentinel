@@ -2,17 +2,14 @@ package com.blogspot.techzealous.sentinel;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -116,30 +113,12 @@ public class PictureActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == Activity.RESULT_OK) {
             if(kRequestCode1 == requestCode) {
-                mPathPicture1 = getRealPathFromURI(data.getData());
+                mPathPicture1 = ImageUtils.getPathFromURI(PictureActivity.this, data.getData());
                 mTextViewSelect1.setText(mPathPicture1);
             } else if(kRequestCode2 == requestCode) {
-                mPathPicture2 = getRealPathFromURI(data.getData());
+                mPathPicture2 = ImageUtils.getPathFromURI(PictureActivity.this, data.getData());
                 mTextViewSelect2.setText(mPathPicture2);
             }
         }
-    }
-
-    public String getRealPathFromURI(Uri uri) {
-        String retVal = null;
-        if (uri == null) {
-            return retVal;
-        }
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = PictureActivity.this.getContentResolver().query(uri, projection, null, null, null);
-        if (cursor != null) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            retVal = cursor.getString(column_index);
-            cursor.close();
-            return retVal;
-        }
-        retVal = uri.getPath();
-        return retVal;
     }
 }

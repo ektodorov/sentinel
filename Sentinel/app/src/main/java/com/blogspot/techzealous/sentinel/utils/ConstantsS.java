@@ -41,7 +41,14 @@ public class ConstantsS {
         sStabilizationEnabled = aIsStabilizationEnabled;
     }
 
-    //sThresholdStagilization
+    /**
+     * sThresholdStagilization
+     *
+     * The threshold to use when calculating the difference in stabilization. If the difference is lower than the threshold it
+     * won't be considered as different and will be discarded.
+     * Bigger values of threshold are more forgiving for misalignments in the
+     * compared images.
+     */
     public static int getThresholdStabilization() {
         return sThresholdStabilization;
     }
@@ -51,7 +58,14 @@ public class ConstantsS {
         sThresholdStabilization = Color.argb(255, colorPercent, colorPercent, colorPercent);
     }
 
-    //sThresholdDifference
+    /**
+     * sThresholdDifference
+     *
+     * The threshold to use when calculating the difference in stabilization. If the difference is lower than the threshold it
+     * won't be considered as different and will be discarded.
+     * Bigger values of threshold are more forgiving for misalignments in the
+     * compared images.
+     */
     public static int getThresholdDifference() {
         return sThresholdDifference;
     }
