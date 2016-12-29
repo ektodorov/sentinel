@@ -7,6 +7,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Surface;
@@ -33,6 +34,7 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
     private int mVideoHeight;
     private boolean mIsVideoSizeKnown;
     private boolean mIsVideoReadyToBePlayed;
+    private SurfaceTexture mSurfaceTexture;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +51,12 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
             public void onClick(View view) {
                 if (Build.VERSION.SDK_INT <= 19) {
                     Intent i = new Intent();
-                    i.setType("image/*");
+                    i.setType("video/*");
                     i.setAction(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
                     startActivityForResult(i, kRequestCode);
                 } else if (Build.VERSION.SDK_INT > 19) {
-                    Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
                     startActivityForResult(intent, kRequestCode);
                 }
             }
@@ -63,7 +65,11 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
         mButtonPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                videoPlay(mPathVideo);
+                if(mPathVideo == null) {
+                    Toast.makeText(VideoActivity.this, "No video file is selected.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                videoPrepareMediaPlayer(mPathVideo, new Surface(mSurfaceTexture));
             }
         });
 
@@ -78,24 +84,25 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
                 Log.i(TAG, "onSurfaceTextureAvalable");
-                videoPrepareMediaPlayer(mPathVideo, new Surface(surfaceTexture));
+                mSurfaceTexture = surfaceTexture;
+                //videoPrepareMediaPlayer(mPathVideo, new Surface(surfaceTexture));
             }
 
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-
+                mSurfaceTexture = surfaceTexture;
             }
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
                 Log.i(TAG, "onSurfaceTextureDestroyed");
-
+                mSurfaceTexture = null;
                 return true;
             }
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
+                mSurfaceTexture = surfaceTexture;
             }
         });
     }
@@ -129,16 +136,6 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
         }
     }
 
-    private void videoPlay(String aPath) {
-        if(aPath == null) {
-            Toast.makeText(VideoActivity.this, "No video file is selected.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if(mMediaPlayer != null && mIsVideoSizeKnown && mIsVideoReadyToBePlayed) {
-            videoStartPlayback();
-        }
-    }
-
     private void videoStop() {
         if(mMediaPlayer != null) {
             mMediaPlayer.stop();
@@ -148,12 +145,12 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
 
     private void videoStartPlayback() {
         Log.i(TAG, "videoStartPlayback");
-//        surfaceHolderHolder.setFixedSize(mVideoWidth, mVideoHeight);
         mMediaPlayer.start();
     }
 
     private void videoReleaseMediaPlayer() {
         if (mMediaPlayer != null) {
+            mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
         }
@@ -179,31 +176,25 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
             mMediaPlayer.setOnVideoSizeChangedListener(this);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         } catch (Exception e) {
-            Log.e(TAG, "error: " + e.getMessage(), e);
+            Log.e(TAG, "videoPrepareMediaPlayer, error=" + e.getMessage(), e);
             e.printStackTrace();
         }
     }
 
     //OnBufferingUpdateListener
     @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-
-    }
+    public void onBufferingUpdate(MediaPlayer mediaPlayer, int percent) {}
 
     //OnCompletionListener
     @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-
-    }
+    public void onCompletion(MediaPlayer mediaPlayer) {}
 
     //OnPreparedListener
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.d(TAG, "onPrepared");
         mIsVideoReadyToBePlayed = true;
-        if (mIsVideoReadyToBePlayed && mIsVideoSizeKnown) {
-            videoStartPlayback();
-        }
+        videoStartPlayback();
     }
 
     //OnVideoSizeChangedListener
@@ -216,8 +207,5 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
         mIsVideoSizeKnown = true;
         mVideoWidth = width;
         mVideoHeight = height;
-        if (mIsVideoReadyToBePlayed && mIsVideoSizeKnown) {
-            videoStartPlayback();
-        }
     }
 }

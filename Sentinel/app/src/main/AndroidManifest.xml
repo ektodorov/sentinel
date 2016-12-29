@@ -20,7 +20,9 @@
         </activity>
         <activity android:name=".CameraActivity">
         </activity>
-        <activity android:name=".VideoActivity">
+        <activity
+            android:name=".VideoActivity"
+            android:screenOrientation="portrait">
         </activity>
         <activity android:name=".PictureActivity">
         </activity>
