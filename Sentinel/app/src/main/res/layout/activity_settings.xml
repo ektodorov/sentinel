@@ -27,7 +27,7 @@
                 android:layout_centerVertical="true"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
-                android:text="Stabilization enabled"
+                android:text="@string/stabilization_enabled"
                 android:id="@+id/textViewStabilizationSettings"/>
 
             <CheckBox
@@ -40,21 +40,21 @@
         </RelativeLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="70dp"
             android:gravity="center_vertical"
             android:textSize="16sp"
             android:textColor="@android:color/black"
-            android:text="Stabilization sensitivity"
+            android:text="@string/stabilization_sensitivity"
             android:id="@+id/textViewStabilizationSensitivitySettings"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="70dp"
             android:gravity="center_vertical"
             android:textSize="16sp"
             android:textColor="@android:color/black"
-            android:text="Difference sensitivity"
+            android:text="@string/difference_sensitivity"
             android:id="@+id/textViewDifferenceSensitivitySettings"/>
 
     </LinearLayout>

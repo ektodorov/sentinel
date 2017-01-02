@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView;
@@ -55,9 +54,9 @@ public class CameraActivity extends AppCompatActivity {
 
         if(!checkCameraHardware(this)) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this);
-            adb.setTitle("No camera");
-            adb.setMessage("This device does not have a camera");
-            adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            adb.setTitle(R.string.no_camera);
+            adb.setMessage(R.string.msg_nocamera);
+            adb.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     finish();
@@ -69,9 +68,9 @@ public class CameraActivity extends AppCompatActivity {
         mCamera = getCameraInstance();
         if(mCamera == null) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this);
-            adb.setTitle("No camera");
-            adb.setMessage("Error connecting to the camera");
-            adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            adb.setTitle(R.string.no_camera);
+            adb.setMessage(R.string.msg_errorcamera);
+            adb.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     finish();
@@ -93,7 +92,6 @@ public class CameraActivity extends AppCompatActivity {
         mRunnableDiff = new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "mExecutorDiff start");
                 if(mBitmapCurrent == null) {
                     if(mIsTextureViewDestroyed) {
                         mHandlerMain.removeCallbacks(mRunnableDiffPost);
@@ -188,7 +186,6 @@ public class CameraActivity extends AppCompatActivity {
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
-                Log.i(TAG, "onSurfaceTextureAvalable");
                 if(mCamera == null) {return;}
                 mIsTextureViewDestroyed = false;
                 try {
@@ -208,7 +205,6 @@ public class CameraActivity extends AppCompatActivity {
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-                Log.i(TAG, "onSurfaceTextureDestroyed");
                 mIsTextureViewDestroyed = true;
                 mHandlerMain.removeCallbacks(mRunnableDiffPost);
                 if(mCamera != null) {

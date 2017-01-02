@@ -54,7 +54,9 @@ public class SettingsActivity extends AppCompatActivity {
         mTextViewStabilizationSensitivity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DialogSlider dialog = new DialogSlider("Stabilization", "Stabilization threshold", new OnValueSetListener() {
+                DialogSlider dialog = new DialogSlider(ConstantsS.STR_Stabilization,
+                        ConstantsS.STR_Stabilization_threshold, new OnValueSetListener()
+                {
                     @Override
                     public void onValueSet(int aValue) {
                         ConstantsS.setThresholdStabilization(aValue);
@@ -70,7 +72,9 @@ public class SettingsActivity extends AppCompatActivity {
         mTextViewDifferenceSensitivity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DialogSlider dialog = new DialogSlider("Difference", "Difference threshold", new OnValueSetListener() {
+                DialogSlider dialog = new DialogSlider(ConstantsS.STR_Difference,
+                        ConstantsS.STR_Difference_threshold, new OnValueSetListener()
+                {
                     @Override
                     public void onValueSet(int aValue) {
                         ConstantsS.setThresholdDifference(aValue);

@@ -18,15 +18,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".CameraActivity">
-        </activity>
+        <activity android:name=".CameraActivity"/>
         <activity
             android:name=".VideoActivity"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".PictureActivity">
-        </activity>
-        <activity android:name=".SettingsActivity">
+        <activity android:name=".PictureActivity"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 

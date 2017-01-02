@@ -51,7 +51,7 @@ public class PictureActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (Build.VERSION.SDK_INT <= 19) {
                     Intent i = new Intent();
-                    i.setType("image/*");
+                    i.setType(ConstantsS.STR_MIME_TYPE_IMAGE);
                     i.setAction(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
                     startActivityForResult(i, kRequestCode1);
@@ -67,7 +67,7 @@ public class PictureActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (Build.VERSION.SDK_INT <= 19) {
                     Intent i = new Intent();
-                    i.setType("image/*");
+                    i.setType(ConstantsS.STR_MIME_TYPE_IMAGE);
                     i.setAction(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
                     startActivityForResult(i, kRequestCode2);

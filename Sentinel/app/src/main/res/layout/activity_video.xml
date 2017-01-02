@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/linearLayoutVideoActivity"
+<RelativeLayout
+    android:id="@+id/relativeLayoutVideoActivity"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="com.blogspot.techzealous.sentinel.VideoActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:id="@+id/linearLayoutButtonsVideoActivity">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:text="Select video"
+            android:text="@string/select_video"
             android:id="@+id/buttonSelectVideoActivity"/>
 
         <Button
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:text="Play"
+            android:text="@string/play"
             android:id="@+id/buttonPlayVideoActivity"/>
 
         <Button
@@ -33,13 +33,20 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:text="Stop"
+            android:text="@string/stop"
             android:id="@+id/buttonStopVideoActivity"/>
     </LinearLayout>
 
     <TextureView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/linearLayoutButtonsVideoActivity"
         android:id="@+id/textureViewVideoActivity"/>
 
-</LinearLayout>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/linearLayoutButtonsVideoActivity"
+        android:id="@+id/imageViewDifferenceVideoActivity"/>
+
+</RelativeLayout>

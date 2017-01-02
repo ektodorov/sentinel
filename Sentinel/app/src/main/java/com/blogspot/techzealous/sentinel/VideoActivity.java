@@ -2,11 +2,16 @@ package com.blogspot.techzealous.sentinel;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,19 +19,28 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBufferingUpdateListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnVideoSizeChangedListener {
 
     private static final String TAG = "VideoActivity";
     private static final int kRequestCode = 300;
+    private final int UPDATE_INTERVAL = 250;
+    private int mSampleSize = 6;
+
     private Button mButtonSelect;
     private Button mButtonPlay;
     private Button mButtonStop;
     private TextureView mTextureView;
+    private ImageView mImageViewDiff;
 
     private String mPathVideo;
     private MediaPlayer mMediaPlayer;
@@ -35,6 +49,13 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
     private boolean mIsVideoSizeKnown;
     private boolean mIsVideoReadyToBePlayed;
     private SurfaceTexture mSurfaceTexture;
+    private Handler mHandlerMain;
+    private ExecutorService mExecutorDiff;
+    private Runnable mRunnableDiffPost;
+    private Runnable mRunnableDiff;
+    private Bitmap mBitmapPrevious;
+    private Bitmap mBitmapCurrent;
+    private volatile boolean mIsTextureViewDestroyed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,13 +66,118 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
         mButtonPlay = (Button)findViewById(R.id.buttonPlayVideoActivity);
         mButtonStop = (Button)findViewById(R.id.buttonStopVideoActivity);
         mTextureView = (TextureView)findViewById(R.id.textureViewVideoActivity);
+        mImageViewDiff = (ImageView)findViewById(R.id.imageViewDifferenceVideoActivity);
+
+        mHandlerMain = new Handler(Looper.getMainLooper());
+        mExecutorDiff = Executors.newSingleThreadExecutor();
+        mRunnableDiffPost = new Runnable() {
+            @Override
+            public void run() {
+                mBitmapCurrent = mTextureView.getBitmap();
+                mExecutorDiff.execute(mRunnableDiff);
+            }
+        };
+
+        mRunnableDiff = new Runnable() {
+            @Override
+            public void run() {
+                if(mBitmapCurrent == null) {
+                    if(mIsTextureViewDestroyed) {
+                        mHandlerMain.removeCallbacks(mRunnableDiffPost);
+                    } else {
+                        mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+                    }
+                    return;
+                }
+                if(mBitmapPrevious == null) {
+                    mBitmapPrevious = mBitmapCurrent;
+                    if(mIsTextureViewDestroyed) {
+                        mHandlerMain.removeCallbacks(mRunnableDiffPost);
+                    } else {
+                        mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+                    }
+                    return;
+                }
+
+                ImageUtils imageUtils = new ImageUtils();
+                if(ConstantsS.isStabilizationEnabled()) {
+                    Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, mSampleSize);
+                    Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                            ConstantsS.getThresholdStabilization());
+
+                    if (rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
+                            || rect.right <= rect.left || rect.bottom <= rect.top) {
+                        Rect rectDiff = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                                ConstantsS.getThresholdDifference());
+
+                        mBitmapPrevious.recycle();
+                        mBitmapPrevious = mBitmapCurrent;
+
+                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+
+                        mHandlerMain.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageViewDiff.setImageBitmap(bitmapRect);
+                            }
+                        });
+                    } else {
+                        Bitmap bitmapPreviousTemp = Bitmap.createBitmap(mBitmapPrevious, rect.left, rect.top,
+                                (rect.right - rect.left), (rect.bottom - rect.top));
+                        Bitmap bitmapCurrentTemp = Bitmap.createBitmap(mBitmapCurrent, rect.left, rect.top,
+                                (rect.right - rect.left), (rect.bottom - rect.top));
+                        Rect rectDiff = imageUtils.getDifference(null, bitmapPreviousTemp, bitmapCurrentTemp, mSampleSize,
+                                ConstantsS.getThresholdDifference());
+                        rectDiff.left = rectDiff.left + rect.left;
+                        rectDiff.top = rectDiff.top + rect.top;
+                        rectDiff.right = rectDiff.right + rect.left;
+                        rectDiff.bottom = rectDiff.bottom + rect.top;
+
+                        mBitmapPrevious.recycle();
+                        mBitmapPrevious = mBitmapCurrent;
+
+                        //display both rectangles
+                        //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+
+                        mHandlerMain.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageViewDiff.setImageBitmap(bitmapRect);
+                            }
+                        });
+                    }
+                } else {
+                    Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                            ConstantsS.getThresholdDifference());
+
+                    mBitmapPrevious.recycle();
+                    mBitmapPrevious = mBitmapCurrent;
+
+                    final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+
+                    mHandlerMain.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mImageViewDiff.setImageBitmap(bitmapRect);
+                        }
+                    });
+                }
+
+                if(mIsTextureViewDestroyed) {
+                    mHandlerMain.removeCallbacks(mRunnableDiffPost);
+                } else {
+                    mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+                }
+            }
+        };
 
         mButtonSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (Build.VERSION.SDK_INT <= 19) {
                     Intent i = new Intent();
-                    i.setType("video/*");
+                    i.setType(ConstantsS.STR_MIME_TYPE_VIDEO);
                     i.setAction(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
                     startActivityForResult(i, kRequestCode);
@@ -66,10 +192,14 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
             @Override
             public void onClick(View view) {
                 if(mPathVideo == null) {
-                    Toast.makeText(VideoActivity.this, "No video file is selected.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(VideoActivity.this, R.string.msg_novideoselected, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                videoPrepareMediaPlayer(mPathVideo, new Surface(mSurfaceTexture));
+                if(mMediaPlayer == null) {
+                    videoPrepareMediaPlayer(mPathVideo, new Surface(mSurfaceTexture));
+                } else if(!mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.start();
+                }
             }
         });
 
@@ -83,9 +213,9 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
-                Log.i(TAG, "onSurfaceTextureAvalable");
+                mIsTextureViewDestroyed = false;
                 mSurfaceTexture = surfaceTexture;
-                //videoPrepareMediaPlayer(mPathVideo, new Surface(surfaceTexture));
+//                mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
             }
 
             @Override
@@ -95,7 +225,8 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-                Log.i(TAG, "onSurfaceTextureDestroyed");
+                mHandlerMain.removeCallbacks(mRunnableDiffPost);
+                mIsTextureViewDestroyed = true;
                 mSurfaceTexture = null;
                 return true;
             }
@@ -115,7 +246,6 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
     @Override
     protected void onPause() {
         super.onPause();
-        videoStop();
         videoReleaseMediaPlayer();
         videoCleanUp();
     }
@@ -137,6 +267,7 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
     }
 
     private void videoStop() {
+        mHandlerMain.removeCallbacks(mRunnableDiffPost);
         if(mMediaPlayer != null) {
             mMediaPlayer.stop();
             videoReleaseMediaPlayer();
@@ -144,13 +275,13 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
     }
 
     private void videoStartPlayback() {
-        Log.i(TAG, "videoStartPlayback");
         mMediaPlayer.start();
+        mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
     }
 
     private void videoReleaseMediaPlayer() {
         if (mMediaPlayer != null) {
-            mMediaPlayer.stop();
+            if(mMediaPlayer.isPlaying()) {mMediaPlayer.stop();}
             mMediaPlayer.release();
             mMediaPlayer = null;
         }
@@ -187,12 +318,13 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
 
     //OnCompletionListener
     @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {}
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        videoStop();
+    }
 
     //OnPreparedListener
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "onPrepared");
         mIsVideoReadyToBePlayed = true;
         videoStartPlayback();
     }

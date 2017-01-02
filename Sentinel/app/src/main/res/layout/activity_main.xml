@@ -13,25 +13,25 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="@string/settings"
             android:id="@+id/buttonSettingsMain"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Camera"
+            android:text="@string/camera"
             android:id="@+id/buttonCameraMain"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Video"
+            android:text="@string/video"
             android:id="@+id/buttonVideoMain"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Picture"
+            android:text="@string/picture"
             android:id="@+id/buttonPictureMain"/>
 
         <Button
