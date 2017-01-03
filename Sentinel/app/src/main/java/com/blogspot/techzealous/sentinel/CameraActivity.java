@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.media.Ringtone;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -125,11 +126,18 @@ public class CameraActivity extends AppCompatActivity {
                         mBitmapPrevious = mBitmapCurrent;
 
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+                        final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
                                 mImageViewDiff.setImageBitmap(bitmapRect);
+                                if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                    Ringtone ringtone = ConstantsS.getRingtone();
+                                    if(ringtone != null && !ringtone.isPlaying()) {
+                                        ringtone.play();
+                                    }
+                                }
                             }
                         });
                     } else {
@@ -148,13 +156,19 @@ public class CameraActivity extends AppCompatActivity {
                         mBitmapPrevious = mBitmapCurrent;
 
                         //display both rectangles
-                        //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
                                 mImageViewDiff.setImageBitmap(bitmapRect);
+                                if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                    Ringtone ringtone = ConstantsS.getRingtone();
+                                    if(ringtone != null && !ringtone.isPlaying()) {
+                                        ringtone.play();
+                                    }
+                                }
                             }
                         });
                     }
@@ -166,11 +180,18 @@ public class CameraActivity extends AppCompatActivity {
                     mBitmapPrevious = mBitmapCurrent;
 
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+                    final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                     mHandlerMain.post(new Runnable() {
                         @Override
                         public void run() {
                             mImageViewDiff.setImageBitmap(bitmapRect);
+                            if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                Ringtone ringtone = ConstantsS.getRingtone();
+                                if(ringtone != null && !ringtone.isPlaying()) {
+                                    ringtone.play();
+                                }
+                            }
                         }
                     });
                 }

@@ -1,16 +1,20 @@
 package com.blogspot.techzealous.sentinel.utils;
 
 import android.graphics.Color;
+import android.media.Ringtone;
 
 public class ConstantsS {
 
     private static boolean sStabilizationEnabled = false;
     private static int sThresholdStabilization = 70;
     private static int sThresholdDifference = 85;
+    private static boolean sPlaySoundEnabled = false;
+    private static Ringtone sRingtone;
 
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
     public static final String PREF_THRESHOLD_STABILIZATION = "thresholdstabilization";
     public static final String PREF_THRESHOLD_DIFFERENCE = "thresholddifference";
+    public static final String PREF_PLAY_SOUND = "playsound";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";
@@ -64,5 +68,25 @@ public class ConstantsS {
     public static void setThresholdDifference(int aSensitivity) {
         int colorPercent = (int)(255 * ((float)(100 - aSensitivity) / 100.0f));
         sThresholdDifference = Color.argb(255, colorPercent, colorPercent, colorPercent);
+    }
+
+    /**
+     * sPlaySoundEnabled
+     * Play sound if there is difference detected and a difference rectangle drawn on the screen.
+     */
+    public static boolean getPlaySoundEnabled() {
+        return sPlaySoundEnabled;
+    }
+
+    public static void setPlaySoundEnabled(boolean aIsEnabled) {
+        sPlaySoundEnabled = aIsEnabled;
+    }
+
+    public static Ringtone getRingtone() {
+        return sRingtone;
+    }
+
+    public static void setRingtone(Ringtone aRingtone) {
+        sRingtone = aRingtone;
     }
 }

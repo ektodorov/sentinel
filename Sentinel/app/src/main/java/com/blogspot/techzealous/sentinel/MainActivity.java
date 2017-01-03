@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -57,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
         mResources = getResources();
         mHandlerMain = new Handler(Looper.getMainLooper());
         mExecutorService = Executors.newSingleThreadExecutor();
+        Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + String.valueOf(R.raw.beep07));
+        Ringtone ringtone = RingtoneManager.getRingtone(this, soundUri);
+        ConstantsS.setRingtone(ringtone);
 
         mButtonSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,5 +112,6 @@ public class MainActivity extends AppCompatActivity {
         ConstantsS.setStabilizationEnabled(mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false));
         ConstantsS.setThresholdStabilization(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70));
         ConstantsS.setThresholdDifference(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85));
+        ConstantsS.setPlaySoundEnabled(mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false));
     }
 }

@@ -293,4 +293,18 @@ public class ImageUtils {
         retVal = aUri.getPath();
         return retVal;
     }
+
+    public static boolean hasDifference(Rect aRect) {
+        boolean retVal = true;
+        if(aRect.left < 0
+            || aRect.top < 0
+            || aRect.right < 0
+            || aRect.bottom < 0
+            || aRect.right <= aRect.left
+            || aRect.bottom <= aRect.top)
+        {
+            retVal = false;
+        }
+        return retVal;
+    }
 }

@@ -18,4 +18,5 @@
     <string name="stabilization_enabled">Stabilization enabled</string>
     <string name="stabilization_sensitivity">Stabilization sensitivity</string>
     <string name="difference_sensitivity">Difference sensitivity</string>
+    <string name="play_sound_enabled">Play sound enabled</string>
 </resources>

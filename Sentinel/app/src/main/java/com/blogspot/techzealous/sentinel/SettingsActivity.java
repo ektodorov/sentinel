@@ -20,6 +20,7 @@ public class SettingsActivity extends AppCompatActivity {
     private CheckBox mCheckBoxStabilization;
     private TextView mTextViewStabilizationSensitivity;
     private TextView mTextViewDifferenceSensitivity;
+    private CheckBox mCheckBoxPlaySound;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -34,13 +35,16 @@ public class SettingsActivity extends AppCompatActivity {
         mCheckBoxStabilization = (CheckBox)findViewById(R.id.checkBoxStabilizationSettings);
         mTextViewStabilizationSensitivity = (TextView)findViewById(R.id.textViewStabilizationSensitivitySettings);
         mTextViewDifferenceSensitivity = (TextView)findViewById(R.id.textViewDifferenceSensitivitySettings);
+        mCheckBoxPlaySound = (CheckBox)findViewById(R.id.checkBoxPlaySoundSettings);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
         mThresholdStabilization = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70);
         mThresholdDifference = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85);
+        boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
 
         mCheckBoxStabilization.setChecked(isStabilizationEnabled);
+        mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
 
         mCheckBoxStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,6 +88,15 @@ public class SettingsActivity extends AppCompatActivity {
                 });
                 dialog.createAlertDialog(SettingsActivity.this, mLinearLayoutRoot, mThresholdDifference);
                 dialog.showDialog();
+            }
+        });
+
+        mCheckBoxPlaySound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isChecked = mCheckBoxPlaySound.isChecked();
+                ConstantsS.setPlaySoundEnabled(isChecked);
+                mPrefs.edit().putBoolean(ConstantsS.PREF_PLAY_SOUND, isChecked).commit();
             }
         });
     }

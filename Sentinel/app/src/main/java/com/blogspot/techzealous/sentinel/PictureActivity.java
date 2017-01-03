@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.Ringtone;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -105,6 +106,13 @@ public class PictureActivity extends AppCompatActivity {
                 paint.setStrokeWidth(1);
                 canvas.drawRect(rectDiff, paint);
                 mImageViewDiff.setImageBitmap(bitmapCanvas);
+
+                if(ImageUtils.hasDifference(rectDiff) && ConstantsS.getPlaySoundEnabled()) {
+                    Ringtone ringtone = ConstantsS.getRingtone();
+                    if(ringtone != null && !ringtone.isPlaying()) {
+                        ringtone.play();
+                    }
+                }
             }
         });
     }

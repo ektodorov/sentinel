@@ -57,5 +57,29 @@
             android:text="@string/difference_sensitivity"
             android:id="@+id/textViewDifferenceSensitivitySettings"/>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:paddingRight="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:text="@string/play_sound_enabled"
+                android:id="@+id/textViewPlaySoundSettings"/>
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:id="@+id/checkBoxPlaySoundSettings"/>
+        </RelativeLayout>
+
     </LinearLayout>
 </ScrollView>

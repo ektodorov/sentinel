@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -114,11 +115,18 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
                         mBitmapPrevious = mBitmapCurrent;
 
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+                        final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
                                 mImageViewDiff.setImageBitmap(bitmapRect);
+                                if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                    Ringtone ringtone = ConstantsS.getRingtone();
+                                    if(ringtone != null && !ringtone.isPlaying()) {
+                                        ringtone.play();
+                                    }
+                                }
                             }
                         });
                     } else {
@@ -137,13 +145,19 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
                         mBitmapPrevious = mBitmapCurrent;
 
                         //display both rectangles
-                        //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
                                 mImageViewDiff.setImageBitmap(bitmapRect);
+                                if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                    Ringtone ringtone = ConstantsS.getRingtone();
+                                    if(ringtone != null && !ringtone.isPlaying()) {
+                                        ringtone.play();
+                                    }
+                                }
                             }
                         });
                     }
@@ -155,11 +169,18 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
                     mBitmapPrevious = mBitmapCurrent;
 
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
+                    final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                     mHandlerMain.post(new Runnable() {
                         @Override
                         public void run() {
                             mImageViewDiff.setImageBitmap(bitmapRect);
+                            if(hasDiff && ConstantsS.getPlaySoundEnabled()) {
+                                Ringtone ringtone = ConstantsS.getRingtone();
+                                if(ringtone != null && !ringtone.isPlaying()) {
+                                    ringtone.play();
+                                }
+                            }
                         }
                     });
                 }
