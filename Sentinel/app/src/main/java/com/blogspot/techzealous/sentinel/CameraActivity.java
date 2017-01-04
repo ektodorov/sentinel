@@ -117,6 +117,7 @@ public class CameraActivity extends AppCompatActivity {
                     Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
                             ConstantsS.getThresholdStabilization());
 
+                    //if there was no stabilization performed, we use the whole frame to look for movement
                     if (rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
                             || rect.right <= rect.left || rect.bottom <= rect.top) {
                         Rect rectDiff = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
@@ -141,6 +142,8 @@ public class CameraActivity extends AppCompatActivity {
                             }
                         });
                     } else {
+                        //if there was stabilization performed we get the part of the frame that stayed the same
+                        // (was not moved/changed due to camera movement) and look for movement in that part of the frame
                         Bitmap bitmapPreviousTemp = Bitmap.createBitmap(mBitmapPrevious, rect.left, rect.top,
                                 (rect.right - rect.left), (rect.bottom - rect.top));
                         Bitmap bitmapCurrentTemp = Bitmap.createBitmap(mBitmapCurrent, rect.left, rect.top,
