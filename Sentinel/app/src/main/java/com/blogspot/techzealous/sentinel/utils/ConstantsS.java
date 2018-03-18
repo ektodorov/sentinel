@@ -2,6 +2,7 @@ package com.blogspot.techzealous.sentinel.utils;
 
 import android.graphics.Color;
 import android.media.Ringtone;
+import android.os.Environment;
 
 public class ConstantsS {
 
@@ -9,12 +10,14 @@ public class ConstantsS {
     private static int sThresholdStabilization = 70;
     private static int sThresholdDifference = 85;
     private static boolean sPlaySoundEnabled = false;
+    private static boolean sRecordPictures = true;
     private static Ringtone sRingtone;
 
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
     public static final String PREF_THRESHOLD_STABILIZATION = "thresholdstabilization";
     public static final String PREF_THRESHOLD_DIFFERENCE = "thresholddifference";
     public static final String PREF_PLAY_SOUND = "playsound";
+    public static final String PREF_RECORD_PICTURES = "recordpictures";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";
@@ -88,5 +91,17 @@ public class ConstantsS {
 
     public static void setRingtone(Ringtone aRingtone) {
         sRingtone = aRingtone;
+    }
+
+    public static boolean getRecordPictures() {return sRecordPictures;}
+
+    public static void setRecordPictures(boolean aIsRecordPictures) {sRecordPictures = aIsRecordPictures;}
+
+    public static boolean isExternalStorageAvailable() {
+        String state = Environment.getExternalStorageState();
+        boolean externalStorageAvailable = false;
+        if(Environment.MEDIA_MOUNTED.equals(state)) { externalStorageAvailable = true; }
+        if(Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) { externalStorageAvailable = false; }
+        return externalStorageAvailable;
     }
 }

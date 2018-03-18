@@ -14,7 +14,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 
@@ -29,11 +28,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonCamera;
     private Button mButtonVideo;
     private Button mButtonPicture;
-    private Button mButton1;
-    private ImageView mImageView1;
-    private ImageView mImageView2;
-    private ImageView mImageView3;
-    private ImageView mImageView1Overlay;
 
     private Bitmap mBitmap1;
     private Bitmap mBitmap2;
@@ -51,11 +45,6 @@ public class MainActivity extends AppCompatActivity {
         mButtonCamera = (Button)findViewById(R.id.buttonCameraMain);
         mButtonVideo = (Button)findViewById(R.id.buttonVideoMain);
         mButtonPicture = (Button)findViewById(R.id.buttonPictureMain);
-        mButton1 = (Button)findViewById(R.id.button1Main);
-        mImageView1 = (ImageView)findViewById(R.id.imageView1);
-        mImageView2 = (ImageView)findViewById(R.id.imageView2);
-        mImageView3 = (ImageView)findViewById(R.id.imageView3);
-        mImageView1Overlay = (ImageView)findViewById(R.id.imageView1Overlay);
 
         mResources = getResources();
         mHandlerMain = new Handler(Looper.getMainLooper());
@@ -96,22 +85,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mButton1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mExecutorService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
-                    }
-                });
-            }
-        });
-
         mPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         ConstantsS.setStabilizationEnabled(mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false));
         ConstantsS.setThresholdStabilization(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70));
         ConstantsS.setThresholdDifference(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85));
         ConstantsS.setPlaySoundEnabled(mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false));
+        ConstantsS.setRecordPictures(mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, true));
     }
 }

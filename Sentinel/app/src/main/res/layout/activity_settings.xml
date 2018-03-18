@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="@color/colorPrimary"
     tools:context="com.blogspot.techzealous.sentinel.SettingsActivity">
 
     <LinearLayout
@@ -79,6 +80,39 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:id="@+id/checkBoxPlaySoundSettings"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingEnd="16dp"
+            android:paddingRight="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@+id/checkBoxRecordPicturesSettings"
+                android:layout_toLeftOf="@+id/checkBoxRecordPicturesSettings"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:text="@string/record_pictures"
+                android:id="@+id/textViewRecordPicturesSettings"/>
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:id="@+id/checkBoxRecordPicturesSettings"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textViewRecordPicturesSettings"
+                android:layout_toStartOf="@+id/checkBoxRecordPicturesSettings"
+                android:layout_toLeftOf="@+id/checkBoxRecordPicturesSettings"
+                android:text="@string/record_pictures_description"/>
+
         </RelativeLayout>
 
     </LinearLayout>

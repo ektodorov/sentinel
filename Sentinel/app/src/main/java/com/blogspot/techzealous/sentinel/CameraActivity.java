@@ -11,10 +11,13 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.Ringtone;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView;
@@ -22,14 +25,23 @@ import android.widget.ImageView;
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
-    private final int UPDATE_INTERVAL = 250;
+    private static final int UPDATE_INTERVAL_PICTURE = 1000;
+    private static final int UPDATE_INTERVAL = 250;
+    private static final int MB = 1024 * 1024;
     private int mSampleSize = 6;
 
     private ImageView mImageViewDiff;
@@ -38,20 +50,24 @@ public class CameraActivity extends AppCompatActivity {
     private Handler mHandlerMain;
     private Camera mCamera;
     private ExecutorService mExecutorDiff;
+    private ExecutorService mExecutorRecord;
     private Runnable mRunnableDiffPost;
     private Runnable mRunnableDiff;
     private Bitmap mBitmapPrevious;
     private Bitmap mBitmapCurrent;
     private volatile boolean mIsTextureViewDestroyed;
+    private volatile boolean mIsRecordingPicture;
+    private int mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
 
-        getSupportActionBar().hide();
-        mImageViewDiff = (ImageView)findViewById(R.id.imageViewCameraActivity);
-        mTextureView = (TextureView)findViewById(R.id.textureViewCameraActivity);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {actionBar.hide();}
+        mImageViewDiff = findViewById(R.id.imageViewCameraActivity);
+        mTextureView = findViewById(R.id.textureViewCameraActivity);
 
         if(!checkCameraHardware(this)) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -82,9 +98,11 @@ public class CameraActivity extends AppCompatActivity {
 
         mHandlerMain = new Handler(Looper.getMainLooper());
         mExecutorDiff = Executors.newSingleThreadExecutor();
+        mExecutorRecord = Executors.newSingleThreadExecutor();
         mRunnableDiffPost = new Runnable() {
             @Override
             public void run() {
+                mRecordIntervalMs = mRecordIntervalMs - UPDATE_INTERVAL;
                 mBitmapCurrent = mTextureView.getBitmap();
                 mExecutorDiff.execute(mRunnableDiff);
             }
@@ -185,6 +203,7 @@ public class CameraActivity extends AppCompatActivity {
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                     final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
+                    if(hasDiff) {recordPicture(mBitmapCurrent);}
                     mHandlerMain.post(new Runnable() {
                         @Override
                         public void run() {
@@ -256,7 +275,7 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+        if(context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
             return true;
         } else {
             return false;
@@ -295,5 +314,62 @@ public class CameraActivity extends AppCompatActivity {
         camera.setDisplayOrientation(result);
     }
 
+    private void recordPicture(Bitmap aBitmap) {
+        if(!ConstantsS.getRecordPictures()) {return;}
+        if(mRecordIntervalMs > 0) {return;}
+        mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
+        if(mIsRecordingPicture) {return;}
+        mIsRecordingPicture = true;
+
+        final WeakReference<CameraActivity> weakThis = new WeakReference<>(CameraActivity.this);
+        final WeakReference<Bitmap> weakBitmap = new WeakReference<>(aBitmap);
+        mExecutorRecord.execute(new Runnable() {
+            @Override
+            public void run() {
+                File pictureFile = CameraActivity.getFilePicture("jpg");
+                if (pictureFile == null){
+                    Log.i(TAG, "recordPitcture, Error creating file");
+                    return;
+                }
+                Bitmap bitmap = weakBitmap.get();
+                if(bitmap == null) {return;}
+                try {
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    CameraActivity strongThis = weakThis.get();
+                    if(strongThis != null) {
+                        strongThis.mIsRecordingPicture = false;
+                    }
+                }
+            }
+        });
+    }
+
+    public static File getFilePicture(String aFileExtension){
+        if(!ConstantsS.isExternalStorageAvailable()) {return null;}
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "sentinel");
+
+        if (!mediaStorageDir.exists()){
+            if (!mediaStorageDir.mkdirs()){return null;}
+        }
+
+        long freeSpace = mediaStorageDir.getFreeSpace();
+        if(freeSpace < MB) {
+            Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+            return null;
+        }
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File filePicture = new File(mediaStorageDir.getPath() + File.separator + timeStamp + "." + aFileExtension);
+        return filePicture;
+    }
 }
 

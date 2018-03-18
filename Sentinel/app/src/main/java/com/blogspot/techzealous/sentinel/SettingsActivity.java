@@ -21,6 +21,8 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView mTextViewStabilizationSensitivity;
     private TextView mTextViewDifferenceSensitivity;
     private CheckBox mCheckBoxPlaySound;
+    private TextView mTextViewRecordPictures;
+    private CheckBox mCheckBoxRecordPictures;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -36,15 +38,19 @@ public class SettingsActivity extends AppCompatActivity {
         mTextViewStabilizationSensitivity = (TextView)findViewById(R.id.textViewStabilizationSensitivitySettings);
         mTextViewDifferenceSensitivity = (TextView)findViewById(R.id.textViewDifferenceSensitivitySettings);
         mCheckBoxPlaySound = (CheckBox)findViewById(R.id.checkBoxPlaySoundSettings);
+        mTextViewRecordPictures = findViewById(R.id.textViewRecordPicturesSettings);
+        mCheckBoxRecordPictures = findViewById(R.id.checkBoxRecordPicturesSettings);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
         mThresholdStabilization = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70);
         mThresholdDifference = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85);
         boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
+        boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, true);
 
         mCheckBoxStabilization.setChecked(isStabilizationEnabled);
         mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
+        mCheckBoxRecordPictures.setChecked(isRecordPictures);
 
         mCheckBoxStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,6 +103,25 @@ public class SettingsActivity extends AppCompatActivity {
                 boolean isChecked = mCheckBoxPlaySound.isChecked();
                 ConstantsS.setPlaySoundEnabled(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_PLAY_SOUND, isChecked).commit();
+            }
+        });
+
+        mTextViewRecordPictures.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCheckBoxRecordPictures.setChecked(!mCheckBoxRecordPictures.isChecked());
+                boolean isChecked = mCheckBoxRecordPictures.isChecked();
+                ConstantsS.setRecordPictures(isChecked);
+                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
+            }
+        });
+
+        mCheckBoxRecordPictures.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isChecked = mCheckBoxRecordPictures.isChecked();
+                ConstantsS.setRecordPictures(isChecked);
+                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
             }
         });
     }
