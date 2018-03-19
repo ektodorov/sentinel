@@ -41,7 +41,7 @@ public class CameraActivity extends AppCompatActivity {
     private static final int UPDATE_INTERVAL_PICTURE = 1000;
     private static final int UPDATE_INTERVAL = 250;
     private static final int MB = 1024 * 1024;
-    private int mSampleSize = 6;
+    private static final int kSampleSize = 16;
 
     private ImageView mImageViewDiff;
     private TextureView mTextureView;
@@ -55,7 +55,6 @@ public class CameraActivity extends AppCompatActivity {
     private Bitmap mBitmapPrevious;
     private Bitmap mBitmapCurrent;
     private volatile boolean mIsTextureViewDestroyed;
-    private volatile boolean mIsRecordingPicture;
     private int mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
 
     @Override
@@ -130,14 +129,14 @@ public class CameraActivity extends AppCompatActivity {
 
                 ImageUtils imageUtils = new ImageUtils();
                 if(ConstantsS.isStabilizationEnabled()) {
-                    Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, mSampleSize);
-                    Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                    Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, kSampleSize * 2);
+                    Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, kSampleSize,
                             ConstantsS.getThresholdStabilization());
 
                     //if there was no stabilization performed, we use the whole frame to look for movement
                     if (rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
                             || rect.right <= rect.left || rect.bottom <= rect.top) {
-                        Rect rectDiff = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                        Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, kSampleSize,
                                 ConstantsS.getThresholdDifference());
 
                         mBitmapPrevious.recycle();
@@ -165,7 +164,7 @@ public class CameraActivity extends AppCompatActivity {
                                 (rect.right - rect.left), (rect.bottom - rect.top));
                         Bitmap bitmapCurrentTemp = Bitmap.createBitmap(mBitmapCurrent, rect.left, rect.top,
                                 (rect.right - rect.left), (rect.bottom - rect.top));
-                        Rect rectDiff = imageUtils.getDifference(null, bitmapPreviousTemp, bitmapCurrentTemp, mSampleSize,
+                        Rect rectDiff = imageUtils.getDifference(null, bitmapPreviousTemp, bitmapCurrentTemp, kSampleSize,
                                 ConstantsS.getThresholdDifference());
                         rectDiff.left = rectDiff.left + rect.left;
                         rectDiff.top = rectDiff.top + rect.top;
@@ -193,7 +192,7 @@ public class CameraActivity extends AppCompatActivity {
                         });
                     }
                 } else {
-                    Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, mSampleSize,
+                    Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, kSampleSize,
                             ConstantsS.getThresholdDifference());
 
                     mBitmapPrevious.recycle();

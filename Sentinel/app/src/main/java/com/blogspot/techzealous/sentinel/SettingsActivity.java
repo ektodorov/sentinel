@@ -36,11 +36,11 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        mLinearLayoutRoot = (LinearLayout)findViewById(R.id.linearLayoutRootSettings);
-        mCheckBoxStabilization = (CheckBox)findViewById(R.id.checkBoxStabilizationSettings);
-        mTextViewStabilizationSensitivity = (TextView)findViewById(R.id.textViewStabilizationSensitivitySettings);
-        mTextViewDifferenceSensitivity = (TextView)findViewById(R.id.textViewDifferenceSensitivitySettings);
-        mCheckBoxPlaySound = (CheckBox)findViewById(R.id.checkBoxPlaySoundSettings);
+        mLinearLayoutRoot = findViewById(R.id.linearLayoutRootSettings);
+        mCheckBoxStabilization = findViewById(R.id.checkBoxStabilizationSettings);
+        mTextViewStabilizationSensitivity = findViewById(R.id.textViewStabilizationSensitivitySettings);
+        mTextViewDifferenceSensitivity = findViewById(R.id.textViewDifferenceSensitivitySettings);
+        mCheckBoxPlaySound = findViewById(R.id.checkBoxPlaySoundSettings);
         mTextViewRecordPicturesDesc = findViewById(R.id.textViewRecordPicturesDescSettings);
         mCheckBoxRecordPictures = findViewById(R.id.checkBoxRecordPicturesSettings);
 

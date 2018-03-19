@@ -33,7 +33,7 @@ public class ImageUtils {
         int height = (int)(aBitmapCurrent.getHeight() / aSampleSize);
         Bitmap bitmapPrevious = Bitmap.createScaledBitmap(aBitmapPrevious, width, height, false);
         Bitmap bitmapCurrent = Bitmap.createScaledBitmap(aBitmapCurrent, width, height, false);
-        Log.i(TAG, "imageStabilization, width=" + width + ", height=" + height);
+//        Log.i(TAG, "imageStabilization, width=" + width + ", height=" + height);
 
         int width20 = bitmapPrevious.getWidth() * 10/100;
         int height20 = bitmapPrevious.getHeight() * 10/100;
@@ -42,18 +42,18 @@ public class ImageUtils {
         int xOriginCurrent = (bitmapCurrent.getWidth() / 2) - width20;
         int yOriginCurrent = (bitmapCurrent.getHeight() / 2) - height20;
         Bitmap bitmapPrev = Bitmap.createBitmap(bitmapPrevious, xOrigin20, yOrigin20, width20, height20);
-        //Log.i(TAG, "imageStabilization, width20=" + width20 + ", height20=" + height20);
+//        Log.i(TAG, "imageStabilization, width20=" + width20 + ", height20=" + height20);
 
         long minDiff = Long.MAX_VALUE;
         int xCurrentMin = 0;
         int yCurrentMin = 0;
-        int xCurrentMax = xOriginCurrent + (width20 * 2);
-        int yCurrentMax = yOriginCurrent + (height20 * 2);
-        //Log.i(TAG, "imageStabilization, xOriginCurrent=" + xOriginCurrent + ", yOriginCurrent=" + yOriginCurrent +
-        //    ", xCurrentMax=" + xCurrentMax + ", yCurrentMax=" + yCurrentMax);
+        int xCurrentMax = xOriginCurrent + (width20 + width20 / 2);
+        int yCurrentMax = yOriginCurrent + (height20 + height20 / 2);
+//        Log.i(TAG, "imageStabilization, xOriginCurrent=" + xOriginCurrent + ", yOriginCurrent=" + yOriginCurrent +
+//            ", xCurrentMax=" + xCurrentMax + ", yCurrentMax=" + yCurrentMax);
         long timeStart = System.currentTimeMillis();
         for(int y = yOriginCurrent; y < yCurrentMax; y++) {
-            //Log.i(TAG, "imageStabilization, y=" + y);
+//            Log.i(TAG, "imageStabilization, y=" + y);
             for (int x = xOriginCurrent; x < xCurrentMax; x++) {
                 Bitmap bitmapCur = Bitmap.createBitmap(bitmapCurrent, x, y, width20, height20);
 
@@ -63,17 +63,17 @@ public class ImageUtils {
                 diff20.applyInPlace(bitmapCurrentOverlay);
                 Bitmap bitmapResult20 = bitmapCurrentOverlay.toBitmap();
                 long colorSum = (long)getColorSum(bitmapResult20);
-                //Log.i(TAG, "imageStabilization, x=" + x + ", y=" + y + ", colorSum=" + colorSum + ", minDiff=" + minDiff);
+//                Log.i(TAG, "imageStabilization, x=" + x + ", y=" + y + ", colorSum=" + colorSum + ", minDiff=" + minDiff);
                 if(minDiff > colorSum) {
                     minDiff = colorSum;
                     xCurrentMin = x;
                     yCurrentMin = y;
-                    //Log.i(TAG, "imageStabilization, x=" + x +  ", y=" + y + ", minDiff=" + minDiff +
-                    //    ", xCurrentMin=" + x + ", yCurrentMin=" + y);
+//                    Log.i(TAG, "imageStabilization, x=" + x +  ", y=" + y + ", minDiff=" + minDiff +
+//                        ", xCurrentMin=" + x + ", yCurrentMin=" + y);
                 }
             }
         }
-        Log.i(TAG, "imageStabilization, time=" + (System.currentTimeMillis() - timeStart) + "ms");
+//        Log.i(TAG, "imageStabilization, time=" + (System.currentTimeMillis() - timeStart) + "ms");
 
         int offsetX = xOrigin20 - xCurrentMin;
         int offsetY = yOrigin20 - yCurrentMin;
