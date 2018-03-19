@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -203,7 +202,7 @@ public class CameraActivity extends AppCompatActivity {
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                     final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
-                    if(hasDiff) {recordPicture(mBitmapCurrent);}
+                    if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
                     mHandlerMain.post(new Runnable() {
                         @Override
                         public void run() {
@@ -314,15 +313,11 @@ public class CameraActivity extends AppCompatActivity {
         camera.setDisplayOrientation(result);
     }
 
-    private void recordPicture(Bitmap aBitmap) {
+    private void recordPicture(final Bitmap aBitmap) {
         if(!ConstantsS.getRecordPictures()) {return;}
         if(mRecordIntervalMs > 0) {return;}
         mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
-        if(mIsRecordingPicture) {return;}
-        mIsRecordingPicture = true;
 
-        final WeakReference<CameraActivity> weakThis = new WeakReference<>(CameraActivity.this);
-        final WeakReference<Bitmap> weakBitmap = new WeakReference<>(aBitmap);
         mExecutorRecord.execute(new Runnable() {
             @Override
             public void run() {
@@ -331,21 +326,16 @@ public class CameraActivity extends AppCompatActivity {
                     Log.i(TAG, "recordPitcture, Error creating file");
                     return;
                 }
-                Bitmap bitmap = weakBitmap.get();
-                if(bitmap == null) {return;}
                 try {
                     FileOutputStream fos = new FileOutputStream(pictureFile);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                    aBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
                     fos.close();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    CameraActivity strongThis = weakThis.get();
-                    if(strongThis != null) {
-                        strongThis.mIsRecordingPicture = false;
-                    }
+                    aBitmap.recycle();
                 }
             }
         });

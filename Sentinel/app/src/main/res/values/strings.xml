@@ -23,5 +23,5 @@
     <string name="difference_sensitivity">Difference sensitivity</string>
     <string name="play_sound_enabled">Play sound enabled</string>
     <string name="record_pictures">Record pictures</string>
-    <string name="record_pictures_description">Records a pciture every 1 second when there is a motion detected and until there is free space on the external storage.</string>
+    <string name="record_pictures_description">Records a pciture every 1 second when there is a motion detected and until there is free space on the external storage.\n%1$s</string>
 </resources>

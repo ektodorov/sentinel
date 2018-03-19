@@ -2,6 +2,7 @@ package com.blogspot.techzealous.sentinel;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -13,6 +14,8 @@ import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.DialogSlider;
 import com.blogspot.techzealous.sentinel.utils.OnValueSetListener;
 
+import java.io.File;
+
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
@@ -21,7 +24,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView mTextViewStabilizationSensitivity;
     private TextView mTextViewDifferenceSensitivity;
     private CheckBox mCheckBoxPlaySound;
-    private TextView mTextViewRecordPictures;
+    private TextView mTextViewRecordPicturesDesc;
     private CheckBox mCheckBoxRecordPictures;
 
     private SharedPreferences mPrefs;
@@ -38,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
         mTextViewStabilizationSensitivity = (TextView)findViewById(R.id.textViewStabilizationSensitivitySettings);
         mTextViewDifferenceSensitivity = (TextView)findViewById(R.id.textViewDifferenceSensitivitySettings);
         mCheckBoxPlaySound = (CheckBox)findViewById(R.id.checkBoxPlaySoundSettings);
-        mTextViewRecordPictures = findViewById(R.id.textViewRecordPicturesSettings);
+        mTextViewRecordPicturesDesc = findViewById(R.id.textViewRecordPicturesDescSettings);
         mCheckBoxRecordPictures = findViewById(R.id.checkBoxRecordPicturesSettings);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
@@ -47,6 +50,9 @@ public class SettingsActivity extends AppCompatActivity {
         mThresholdDifference = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85);
         boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
         boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, true);
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "sentinel");
+        mTextViewRecordPicturesDesc.setText(getResources().getString(R.string.record_pictures_description, mediaStorageDir.getAbsolutePath()));
 
         mCheckBoxStabilization.setChecked(isStabilizationEnabled);
         mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
@@ -103,16 +109,6 @@ public class SettingsActivity extends AppCompatActivity {
                 boolean isChecked = mCheckBoxPlaySound.isChecked();
                 ConstantsS.setPlaySoundEnabled(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_PLAY_SOUND, isChecked).commit();
-            }
-        });
-
-        mTextViewRecordPictures.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mCheckBoxRecordPictures.setChecked(!mCheckBoxRecordPictures.isChecked());
-                boolean isChecked = mCheckBoxRecordPictures.isChecked();
-                ConstantsS.setRecordPictures(isChecked);
-                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
             }
         });
 
