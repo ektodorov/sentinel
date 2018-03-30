@@ -145,6 +145,7 @@ public class CameraActivity extends AppCompatActivity {
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                         final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
+                        if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
@@ -178,6 +179,7 @@ public class CameraActivity extends AppCompatActivity {
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
                         final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
+                        if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
