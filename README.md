@@ -18,12 +18,12 @@ Description:<br>
 
 
 # Sentinel Desktop Java application
+Uses the computers camera to records images or videos when there is detected movement in the image.<br>
+
 The source is in the Sentinel_Desktop directory.<br>
 To build the project you need to download the libraries from the links below and to copy them to the
 project's libs directory.
-
-Uses the computers camera to records images or videos when there is detected movement in the image.<br>
-
+<br>
 <a href="http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/">http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/</a>
 <br>
 <a href="http://central.maven.org/maven2/com/nativelibs4java/bridj/0.7.0/">http://central.maven.org/maven2/com/nativelibs4java/bridj/0.7.0/</a>
