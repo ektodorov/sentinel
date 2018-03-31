@@ -31,3 +31,10 @@ project's libs directory.
 <a href="http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/">http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/</a>
 <br>
 <a href="https://www.dcm4che.org/maven2/xuggle/xuggle-xuggler/5.4/">https://www.dcm4che.org/maven2/xuggle/xuggle-xuggler/5.4/</a>
+
+<br>
+<br>
+
+In the Downloads/Desktop directory there is an archive with an executable Java application of Sentinel for Desktop.
+In order to run this application you need extract the archive which contains the executable jar and directory
+sentinel_lib. After that download the libraries from the links above and place them in the sentinel_lib directory.
