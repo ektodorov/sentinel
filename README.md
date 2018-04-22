@@ -26,7 +26,7 @@ project's libs directory.
 <br>
 <a href="http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/">http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/</a>
 <br>
-<a href="http://central.maven.org/maven2/com/nativelibs4java/bridj/0.7.0/">http://central.maven.org/maven2/com/nativelibs4java/bridj/0.7.0/</a>
+<a href="http://central.maven.org/maven2/com/nativelibs4java/bridj/0.6.2/">http://central.maven.org/maven2/com/nativelibs4java/bridj/0.6.2/</a>
 <br>
 <a href="http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/">http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/</a>
 <br>
