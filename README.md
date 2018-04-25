@@ -26,11 +26,19 @@ project's libs directory.
 <br>
 <a href="http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/">http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/</a>
 <br>
+(<a href="http://central.maven.org/maven2/com/github/sarxos/webcam-capture/0.3.10/webcam-capture-0.3.10.jar">webcam-capture-0.3.10.jar</a>
+<br>
 <a href="http://central.maven.org/maven2/com/nativelibs4java/bridj/0.6.2/">http://central.maven.org/maven2/com/nativelibs4java/bridj/0.6.2/</a>
+<br>
+(<a href="http://central.maven.org/maven2/com/nativelibs4java/bridj/0.6.2/bridj-0.6.2.jar">bridj-0.6.2.jar</ar>)
 <br>
 <a href="http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/">http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/</a>
 <br>
+(<a href="http://maven.aliyun.com/nexus/content/repositories/releases/org/slf4j/slf4j-api/1.7.20/slf4j-api-1.7.20.jar">slf4j-api-1.7.20.jar</ar>)
+<br>
 <a href="https://www.dcm4che.org/maven2/xuggle/xuggle-xuggler/5.4/">https://www.dcm4che.org/maven2/xuggle/xuggle-xuggler/5.4/</a>
+<br>
+(<a href="https://www.dcm4che.org/maven2/xuggle/xuggle-xuggler/5.4/xuggle-xuggler-5.4.jar">xuggle-xuggler-5.4.jar</a>)
 
 <br>
 <br>
