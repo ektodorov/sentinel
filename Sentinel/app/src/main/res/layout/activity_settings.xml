@@ -13,10 +13,12 @@
         android:layout_height="wrap_content"
         android:paddingLeft="8dp"
         android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:orientation="vertical"
         android:id="@+id/linearLayoutRootSettings">
 
         <RelativeLayout
+            android:id="@+id/relativeLayoutStabilizationSettings"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:paddingRight="16dp"
@@ -59,6 +61,7 @@
             android:id="@+id/textViewDifferenceSensitivitySettings"/>
 
         <RelativeLayout
+            android:id="@+id/relativeLayoutPlaySoundSettings"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:paddingRight="16dp"
@@ -83,6 +86,7 @@
         </RelativeLayout>
 
         <RelativeLayout
+            android:id="@+id/relativeLayoutPicturesSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingEnd="16dp"

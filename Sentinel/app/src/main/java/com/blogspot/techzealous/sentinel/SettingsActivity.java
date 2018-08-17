@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
@@ -20,10 +21,13 @@ public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
     private LinearLayout mLinearLayoutRoot;
+    private RelativeLayout mRelativeLayoutStabilization;
     private CheckBox mCheckBoxStabilization;
     private TextView mTextViewStabilizationSensitivity;
     private TextView mTextViewDifferenceSensitivity;
+    private RelativeLayout mRelativeLayoutPlaySound;
     private CheckBox mCheckBoxPlaySound;
+    private RelativeLayout mRelativeLayoutPictures;
     private TextView mTextViewRecordPicturesDesc;
     private CheckBox mCheckBoxRecordPictures;
 
@@ -37,10 +41,13 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         mLinearLayoutRoot = findViewById(R.id.linearLayoutRootSettings);
+        mRelativeLayoutStabilization = findViewById(R.id.relativeLayoutStabilizationSettings);
         mCheckBoxStabilization = findViewById(R.id.checkBoxStabilizationSettings);
         mTextViewStabilizationSensitivity = findViewById(R.id.textViewStabilizationSensitivitySettings);
         mTextViewDifferenceSensitivity = findViewById(R.id.textViewDifferenceSensitivitySettings);
+        mRelativeLayoutPlaySound = findViewById(R.id.relativeLayoutPlaySoundSettings);
         mCheckBoxPlaySound = findViewById(R.id.checkBoxPlaySoundSettings);
+        mRelativeLayoutPictures = findViewById(R.id.relativeLayoutPicturesSettings);
         mTextViewRecordPicturesDesc = findViewById(R.id.textViewRecordPicturesDescSettings);
         mCheckBoxRecordPictures = findViewById(R.id.checkBoxRecordPicturesSettings);
 
@@ -58,10 +65,11 @@ public class SettingsActivity extends AppCompatActivity {
         mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
         mCheckBoxRecordPictures.setChecked(isRecordPictures);
 
-        mCheckBoxStabilization.setOnClickListener(new View.OnClickListener() {
+        mRelativeLayoutStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean isChecked = mCheckBoxStabilization.isChecked();
+                boolean isChecked = !mCheckBoxStabilization.isChecked();
+                mCheckBoxStabilization.setChecked(isChecked);
                 ConstantsS.setStabilizationEnabled(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, isChecked).commit();
             }
@@ -103,19 +111,22 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        mCheckBoxPlaySound.setOnClickListener(new View.OnClickListener() {
+        mRelativeLayoutPlaySound.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean isChecked = mCheckBoxPlaySound.isChecked();
+                boolean isChecked = !mCheckBoxPlaySound.isChecked();
+                mCheckBoxPlaySound.setChecked(isChecked);
                 ConstantsS.setPlaySoundEnabled(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_PLAY_SOUND, isChecked).commit();
             }
         });
 
-        mCheckBoxRecordPictures.setOnClickListener(new View.OnClickListener() {
+
+        mRelativeLayoutPictures.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean isChecked = mCheckBoxRecordPictures.isChecked();
+                boolean isChecked = !mCheckBoxRecordPictures.isChecked();
+                mCheckBoxRecordPictures.setChecked(isChecked);
                 ConstantsS.setRecordPictures(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
             }
