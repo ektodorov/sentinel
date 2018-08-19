@@ -19,6 +19,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamMotionDetector;
@@ -45,6 +47,7 @@ public class Sentinel implements WindowListener {
 	private JRadioButton mRadioVideos;
 	private ButtonGroup mButtonGroupRadio;
 	private JButton mButtonStartRecord;
+	private JButton mButtonAbout;
 	
 	public Sentinel() {
 		mRecorder = new Recorder();
@@ -62,15 +65,18 @@ public class Sentinel implements WindowListener {
 	
 	public void createGui() {
 		mWebcam = Webcam.getDefault();
-		mWebcam.setViewSize(WebcamResolution.VGA.getSize());
+		WebcamPanel panel = null;
+		if(mWebcam != null) {
+			mWebcam.setViewSize(WebcamResolution.VGA.getSize());
 
-		WebcamPanel panel = new WebcamPanel(mWebcam);
-		//panel.setFPSDisplayed(true);
-		//panel.setDisplayDebugInfo(true);
-		//panel.setImageSizeDisplayed(true);
-		panel.setMirrored(true);
+			panel = new WebcamPanel(mWebcam);
+			//panel.setFPSDisplayed(true);
+			//panel.setDisplayDebugInfo(true);
+			//panel.setImageSizeDisplayed(true);
+			panel.setMirrored(true);
+		}
 
-		JFrame window = new JFrame("Sentinel");
+		JFrame window = new JFrame(ConstantsSentinel.STR_APPLICATION_NAME);
 		//window.add(panel);
 		window.setResizable(true);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -87,6 +93,7 @@ public class Sentinel implements WindowListener {
         mButtonGroupRadio.add(mRadioPictures);
         mButtonGroupRadio.add(mRadioVideos);
 		mButtonStartRecord = new JButton("Start");
+		mButtonAbout = new JButton(ConstantsSentinel.STR_ABOUT);
 		
 		mButtonStartRecord.addActionListener(new ActionListener() {
 			@Override
@@ -107,29 +114,51 @@ public class Sentinel implements WindowListener {
 			}
 		});
 		
-		contentPane.add(panel);
+		mButtonAbout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//JOptionPane.showMessageDialog(mFrame, ConstantsSentinel.STR_ABOUT_MESSAGE, ConstantsSentinel.STR_ABOUT_TITLE, JOptionPane.INFORMATION_MESSAGE);
+				JFrame frame = new JFrame(ConstantsSentinel.STR_ABOUT_TITLE);
+				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				frame.setResizable(true);
+				frame.setLocationRelativeTo(null);
+				frame.setSize(768, 1024);
+				JTextPane txt = new JTextPane();
+				txt.setText(ConstantsSentinel.STR_ABOUT_MESSAGE);
+				txt.setSize(768, 1024);
+				JScrollPane jsp = new JScrollPane(txt);
+				frame.add(jsp);
+				frame.pack();
+				frame.setVisible(true);
+			}
+		});
+		
+		if(panel != null) {contentPane.add(panel);}
 		contentPane.add(mRadioPictures);
         contentPane.add(mRadioVideos);
         contentPane.add(mButtonStartRecord);
+        contentPane.add(mButtonAbout);
 		
 		window.pack();
 		window.setVisible(true);
 		
-		mWebcamMotionDetector = new WebcamMotionDetector(mWebcam);
-		mWebcamMotionDetector.setInterval(500);// check on 500 ms
-		mWebcamMotionDetector.addMotionListener(new WebcamMotionListener() {
-			@Override
-			public void motionDetected(WebcamMotionEvent arg0) {
-				if(!mIsMotionDetectionStarted) {return;}
+		if(mWebcam != null) {
+			mWebcamMotionDetector = new WebcamMotionDetector(mWebcam);
+			mWebcamMotionDetector.setInterval(500);// check on 500 ms
+			mWebcamMotionDetector.addMotionListener(new WebcamMotionListener() {
+				@Override
+				public void motionDetected(WebcamMotionEvent arg0) {
+					if(!mIsMotionDetectionStarted) {return;}
 				
-				if(mRadioPictures.isSelected()) {
-					recordImage();
-				} else {
-					recordVideo();
+					if(mRadioPictures.isSelected()) {
+						recordImage();
+					} else {
+						recordVideo();
+					}
 				}
-			}
-		});
-		mWebcamMotionDetector.start();
+			});
+			mWebcamMotionDetector.start();
+		}
 	}
 	
 	public void startMotionDetection() {
@@ -176,20 +205,20 @@ public class Sentinel implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		mWebcamMotionDetector.stop();
+		if(mWebcamMotionDetector != null) {
+			mWebcamMotionDetector.stop();
+		}
 		mRecorder.recordStop();
 	}
 
 	@Override
-	public void windowClosed(WindowEvent e) {
-		
-	}
+	public void windowClosed(WindowEvent e) {}
 
 	@Override
 	public void windowIconified(WindowEvent e) {}
 
 	@Override
-	public void windowDeiconified(WindowEvent e) {	}
+	public void windowDeiconified(WindowEvent e) {}
 
 	@Override
 	public void windowActivated(WindowEvent e) {}
