@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
@@ -24,22 +27,34 @@ import android.widget.ImageView;
 
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
-    private static final int UPDATE_INTERVAL_PICTURE = 1000;
-    private static final int UPDATE_INTERVAL = 250;
+    private static final int UPDATE_INTERVAL = 500;
+    private static final int RECORD_INTERVAL = 250;//4 fps
+    private static final int FPS = 1000 / RECORD_INTERVAL;
     private static final int MB = 1024 * 1024;
     private static final int kSampleSize = 16;
 
@@ -50,12 +65,19 @@ public class CameraActivity extends AppCompatActivity {
     private Camera mCamera;
     private ExecutorService mExecutorDiff;
     private ExecutorService mExecutorRecord;
+    private ScheduledExecutorService mScheduledExecutorRecord;
+    private Future<?> mFutureRecordStop;
     private Runnable mRunnableDiffPost;
     private Runnable mRunnableDiff;
+    private Runnable mRunnableRecordStop;
     private Bitmap mBitmapPrevious;
     private Bitmap mBitmapCurrent;
     private volatile boolean mIsTextureViewDestroyed;
-    private int mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
+    private volatile boolean mIsRecording;
+    private FFmpeg mFFmpeg;
+    private int mVideoSequence;
+    private SimpleDateFormat mDateFormat;
+    private Paint mPaintText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,13 +116,18 @@ public class CameraActivity extends AppCompatActivity {
             return;
         }
 
+        loadFFMpegBinary();
         mHandlerMain = new Handler(Looper.getMainLooper());
         mExecutorDiff = Executors.newSingleThreadExecutor();
         mExecutorRecord = Executors.newSingleThreadExecutor();
+        mScheduledExecutorRecord = Executors.newSingleThreadScheduledExecutor();
+        mDateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault());
+        mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaintText.setColor(Color.WHITE);
+        mPaintText.setTextSize(12 * getResources().getDisplayMetrics().density);
         mRunnableDiffPost = new Runnable() {
             @Override
             public void run() {
-                mRecordIntervalMs = mRecordIntervalMs - UPDATE_INTERVAL;
                 mBitmapCurrent = mTextureView.getBitmap();
                 mExecutorDiff.execute(mRunnableDiff);
             }
@@ -145,7 +172,10 @@ public class CameraActivity extends AppCompatActivity {
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                         final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
-                        if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
+                        if(hasDiff) {
+                            //recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));
+                            recordStart(mTextureView);
+                        }
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
@@ -179,7 +209,10 @@ public class CameraActivity extends AppCompatActivity {
                         final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
                         final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
-                        if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
+                        if(hasDiff) {
+                            //recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));
+                            recordStart(mTextureView);
+                        }
                         mHandlerMain.post(new Runnable() {
                             @Override
                             public void run() {
@@ -203,7 +236,10 @@ public class CameraActivity extends AppCompatActivity {
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                     final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
-                    if(hasDiff) {recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));}
+                    if(hasDiff) {
+                        //recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));
+                        recordStart(mTextureView);
+                    }
                     mHandlerMain.post(new Runnable() {
                         @Override
                         public void run() {
@@ -223,6 +259,13 @@ public class CameraActivity extends AppCompatActivity {
                 } else {
                     mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
                 }
+            }
+        };
+
+        mRunnableRecordStop = new Runnable() {
+            @Override
+            public void run() {
+                mIsRecording = false;
             }
         };
 
@@ -314,39 +357,296 @@ public class CameraActivity extends AppCompatActivity {
         camera.setDisplayOrientation(result);
     }
 
-    private void recordPicture(final Bitmap aBitmap) {
-        if(!ConstantsS.getRecordPictures()) {return;}
-        if(mRecordIntervalMs > 0) {return;}
-        mRecordIntervalMs = UPDATE_INTERVAL_PICTURE;
+    private void recordStart(TextureView aTextureView) {
+        Log.i(TAG, "recordStart, mIsRecording=" + mIsRecording);
+        if(mIsRecording) {
+            if(mFutureRecordStop != null) {mFutureRecordStop.cancel(false);}
+            mFutureRecordStop = mScheduledExecutorRecord.schedule(mRunnableRecordStop, 2, TimeUnit.SECONDS);
+            return;
+        }
 
+        mIsRecording = true;
+        if(ConstantsS.getRecordPictures()) {
+            recordPicture(aTextureView);
+        } else if(ConstantsS.getRecordVideos()) {
+            recordVideo(aTextureView);
+        }
+    }
+
+    private void recordPicture(final TextureView aTextureView) {
         mExecutorRecord.execute(new Runnable() {
             @Override
             public void run() {
-                File pictureFile = CameraActivity.getFilePicture("jpg");
-                if (pictureFile == null){
-                    Log.i(TAG, "recordPitcture, Error creating file");
-                    return;
-                }
-                try {
-                    FileOutputStream fos = new FileOutputStream(pictureFile);
-                    aBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
-                    fos.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    aBitmap.recycle();
+                Date date = null;
+                String time = null;
+                while(mIsRecording) {
+                    File pictureFile = CameraActivity.getFilePicture(null, "jpg");
+                    if (pictureFile == null){
+                        Log.i(TAG, "recordPitcture, Error creating file");
+                        return;
+                    }
+                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
+
+                    date = new Date();
+                    time = mDateFormat.format(date);
+                    Canvas canvas = new Canvas(bitmap);
+                    canvas.drawText(time, 10, 10, mPaintText);
+
+                    try {
+                        FileOutputStream fos = new FileOutputStream(pictureFile);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                        fos.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        bitmap.recycle();
+                    }
+
+                    try {
+                        Thread.sleep(RECORD_INTERVAL);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
     }
 
-    public static File getFilePicture(String aFileExtension){
+    private void recordVideo(final TextureView aTextureView) {
+        Log.i(TAG, "recordVideo, 421");
+        mExecutorRecord.execute(new Runnable() {
+            @Override
+            public void run() {
+                int sequence = mVideoSequence;
+                int index = 0;
+                Date date = null;
+                String time = null;
+                while(mIsRecording) {
+                    File pictureFile = CameraActivity.getFilePictureForVideo(String.valueOf(sequence),
+                            String.valueOf(index), "jpg");
+                    if (pictureFile == null){
+                        Log.i(TAG, "recordVideo, Error creating file");
+                        return;
+                    }
+                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
+
+                    date = new Date();
+                    time = mDateFormat.format(date);
+                    Canvas canvas = new Canvas(bitmap);
+                    canvas.drawText(time, 10, 10, mPaintText);
+
+                    try {
+                        FileOutputStream fos = new FileOutputStream(pictureFile);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                        fos.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        bitmap.recycle();
+                    }
+
+                    try {
+                        Thread.sleep(RECORD_INTERVAL);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    index++;
+                }
+                String dirForVideo = getDirForVideo(String.valueOf(sequence)).getPath();
+                mVideoSequence++;
+
+                String inputFileAbsolutePath = getDirForVideo(String.valueOf(sequence)).getPath()
+                        + File.separator + "%d.jpg";
+                String outputFileAbsolutePath = getFileVideo("mp4").getPath();
+                Log.i(TAG, "inputFile=" + inputFileAbsolutePath + ", outputFile=" + outputFileAbsolutePath);
+                String fps = String.valueOf(FPS);
+                String[] command = {
+                        "-y",//overwrite output file without asking
+                        "-i",//input files
+                        inputFileAbsolutePath,
+                        "-s",//video output size
+                        "640x480",
+                        "-r",//frame rate
+                        fps,
+                        "-vcodec",//video codec
+                        "mpeg4",
+                        "-b:v",//video bitrate
+                        "150k",
+//                        "-b:a",//audio bitrate
+//                        "48000",
+//                        "-ac",//audio channels
+//                        "2",
+//                        "-ar",//sampling rate for audio stream
+//                        "22050",
+                        outputFileAbsolutePath};
+                execFFmpegBinary(command, dirForVideo);
+            }
+        });
+    }
+
+    private void loadFFMpegBinary() {
+        try {
+            if (mFFmpeg == null) {
+                mFFmpeg = FFmpeg.getInstance(this);
+            }
+            mFFmpeg.loadBinary(new LoadBinaryResponseHandler() {
+                @Override
+                public void onFailure() {
+                    Log.i(TAG, "ffmpeg loadBinary, onFailure");
+                }
+
+                @Override
+                public void onSuccess() {
+                    Log.i(TAG, "ffmpeg loadBinary, onSuccess");
+                }
+            });
+        } catch (FFmpegNotSupportedException e) {
+            Log.d(TAG, "FFmpegNotSupportedException, e=" + e);
+            e.printStackTrace();
+            mFFmpeg = null;
+        } catch (Exception e) {
+            Log.d(TAG, "Exception, e=" + e);
+            e.printStackTrace();
+            mFFmpeg = null;
+        }
+    }
+
+    private void execFFmpegBinary(final String[] command, final String dirForVideo) {
+        try {
+            mFFmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onFailure(String s) {
+                    Log.i(TAG, "execute, onFailure, s=" + s);
+                }
+
+                @Override
+                public void onSuccess(String s) {
+                    Log.i(TAG, "execute, onSuccess, s=" + s);
+                }
+
+                @Override
+                public void onProgress(String s) {
+                    Log.i(TAG, "execute, onProgress, s=" + s);
+                }
+
+                @Override
+                public void onStart() {
+                    Log.i(TAG, "execute, onStart, command=" + command);
+                }
+
+                @Override
+                public void onFinish() {
+                    Log.i(TAG, "execute, onFinish, command=" + command);
+                    deleteDirectory(dirForVideo);
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void deleteDirectory(String aDirectory) {
+        File dir = new File(aDirectory);
+        String[] files = dir.list();
+        int count = files.length;
+        for(int x = 0; x < count; x++) {
+            File file = new File(dir, files[x]);
+            file.delete();
+        }
+        dir.delete();
+    }
+
+    private static void freeUpSpace(File aDirectory, int aDeleteNumberOfFiles) {
+        ArrayList<File> sortedFiles = new ArrayList<>();
+        String[] files = aDirectory.list();
+        for(int x = 0; x <files.length ; x++) {
+            File file = new File(aDirectory.getPath(), files[x]);
+            sortedFiles.add(file);
+        }
+        Collections.sort(sortedFiles, new Comparator<File>() {
+            @Override
+            public int compare(File file1, File file2) {
+                long modified1 = file1.lastModified();
+                long modified2 = file2.lastModified();
+                if(modified1 > modified2) {
+                    return 1;
+                } else if(modified1 < modified2) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
+        if(aDeleteNumberOfFiles > sortedFiles.size()) {
+            aDeleteNumberOfFiles = sortedFiles.size();
+        }
+        for(int x = 0; x < aDeleteNumberOfFiles; x++) {
+            File file = sortedFiles.get(x);
+            file.delete();
+        }
+    }
+
+    public static File getFilePicture(String aFileName, String aFileExtension){
         if(!ConstantsS.isExternalStorageAvailable()) {return null;}
 
+        File mediaStorageDir = getDirForPictures();
+
+        if (!mediaStorageDir.exists()){
+            if (!mediaStorageDir.mkdirs()){return null;}
+        }
+
+        long freeSpace = mediaStorageDir.getFreeSpace();
+        if(freeSpace < MB) {
+            Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+            freeUpSpace(mediaStorageDir, 9);
+        }
+
+        String timeStamp = aFileName;
+        if(timeStamp != null) {
+            timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        }
+        File filePicture = new File(mediaStorageDir.getPath() + File.separator + timeStamp + "." + aFileExtension);
+        return filePicture;
+    }
+
+    public static File getFilePictureForVideo(String aSequence, String aFileName, String aFileExtension){
+        if(!ConstantsS.isExternalStorageAvailable()) {return null;}
+
+        File mediaStorageDir = getDirForVideo(aSequence);
+
+        if (!mediaStorageDir.exists()){
+            if (!mediaStorageDir.mkdirs()){return null;}
+        }
+
+        long freeSpace = mediaStorageDir.getFreeSpace();
+        if(freeSpace < MB) {
+            Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+            freeUpSpace(getDirForPictures(), 9);
+        }
+
+        File filePicture = new File(mediaStorageDir.getPath() + File.separator + aFileName + "." + aFileExtension);
+        return filePicture;
+    }
+
+    public static File getDirForPictures() {
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "sentinel");
+        return mediaStorageDir;
+    }
+
+    public static File getDirForVideo(String aSequence) {
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "sentinel" + aSequence);
+        return mediaStorageDir;
+    }
+
+    public static File getFileVideo(String aFileExtension){
+        if(!ConstantsS.isExternalStorageAvailable()) {return null;}
+
+        File mediaStorageDir = getDirForPictures();
 
         if (!mediaStorageDir.exists()){
             if (!mediaStorageDir.mkdirs()){return null;}

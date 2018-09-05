@@ -30,6 +30,9 @@ public class SettingsActivity extends AppCompatActivity {
     private RelativeLayout mRelativeLayoutPictures;
     private TextView mTextViewRecordPicturesDesc;
     private CheckBox mCheckBoxRecordPictures;
+    private RelativeLayout mRelativeLayoutVideos;
+    private TextView mTextViewRecordVideosDesc;
+    private CheckBox mCheckBoxRecordVideos;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -50,20 +53,28 @@ public class SettingsActivity extends AppCompatActivity {
         mRelativeLayoutPictures = findViewById(R.id.relativeLayoutPicturesSettings);
         mTextViewRecordPicturesDesc = findViewById(R.id.textViewRecordPicturesDescSettings);
         mCheckBoxRecordPictures = findViewById(R.id.checkBoxRecordPicturesSettings);
+        mRelativeLayoutVideos = findViewById(R.id.relativeLayoutVideosSettings);
+        mTextViewRecordVideosDesc = findViewById(R.id.textViewRecordVideosDescSettings);
+        mCheckBoxRecordVideos = findViewById(R.id.checkBoxRecordVideosSettings);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
         mThresholdStabilization = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70);
         mThresholdDifference = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85);
         boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
-        boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, true);
+        boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false);
+        boolean isRecordVideos = mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true);
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "sentinel");
-        mTextViewRecordPicturesDesc.setText(getResources().getString(R.string.record_pictures_description, mediaStorageDir.getAbsolutePath()));
+        mTextViewRecordPicturesDesc.setText(getResources().getString(R.string.record_description,
+                mediaStorageDir.getAbsolutePath()));
+        mTextViewRecordVideosDesc.setText(getResources().getString(R.string.record_description,
+                mediaStorageDir.getAbsolutePath()));
 
         mCheckBoxStabilization.setChecked(isStabilizationEnabled);
         mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
         mCheckBoxRecordPictures.setChecked(isRecordPictures);
+        mCheckBoxRecordVideos.setChecked(isRecordVideos);
 
         mRelativeLayoutStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,8 +138,24 @@ public class SettingsActivity extends AppCompatActivity {
             public void onClick(View view) {
                 boolean isChecked = !mCheckBoxRecordPictures.isChecked();
                 mCheckBoxRecordPictures.setChecked(isChecked);
+                mCheckBoxRecordVideos.setChecked(!isChecked);
                 ConstantsS.setRecordPictures(isChecked);
+                ConstantsS.setRecordVideos(!isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
+                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, !isChecked).commit();
+            }
+        });
+
+        mRelativeLayoutVideos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isChecked = !mCheckBoxRecordVideos.isChecked();
+                mCheckBoxRecordPictures.setChecked(!isChecked);
+                mCheckBoxRecordVideos.setChecked(isChecked);
+                ConstantsS.setRecordPictures(!isChecked);
+                ConstantsS.setRecordVideos(isChecked);
+                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
+                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, isChecked).commit();
             }
         });
     }
