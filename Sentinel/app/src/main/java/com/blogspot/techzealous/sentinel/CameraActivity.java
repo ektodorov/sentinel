@@ -358,7 +358,6 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void recordStart(TextureView aTextureView) {
-        Log.i(TAG, "recordStart, mIsRecording=" + mIsRecording);
         if(mIsRecording) {
             if(mFutureRecordStop != null) {mFutureRecordStop.cancel(false);}
             mFutureRecordStop = mScheduledExecutorRecord.schedule(mRunnableRecordStop, 2, TimeUnit.SECONDS);
@@ -382,7 +381,6 @@ public class CameraActivity extends AppCompatActivity {
                 while(mIsRecording) {
                     File pictureFile = CameraActivity.getFilePicture(null, "jpg");
                     if (pictureFile == null){
-                        Log.i(TAG, "recordPitcture, Error creating file");
                         return;
                     }
                     Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
@@ -415,7 +413,6 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void recordVideo(final TextureView aTextureView) {
-        Log.i(TAG, "recordVideo, 421");
         mExecutorRecord.execute(new Runnable() {
             @Override
             public void run() {
@@ -427,7 +424,6 @@ public class CameraActivity extends AppCompatActivity {
                     File pictureFile = CameraActivity.getFilePictureForVideo(String.valueOf(sequence),
                             String.valueOf(index), "jpg");
                     if (pictureFile == null){
-                        Log.i(TAG, "recordVideo, Error creating file");
                         return;
                     }
                     Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
@@ -505,11 +501,9 @@ public class CameraActivity extends AppCompatActivity {
                 }
             });
         } catch (FFmpegNotSupportedException e) {
-            Log.d(TAG, "FFmpegNotSupportedException, e=" + e);
             e.printStackTrace();
             mFFmpeg = null;
         } catch (Exception e) {
-            Log.d(TAG, "Exception, e=" + e);
             e.printStackTrace();
             mFFmpeg = null;
         }
@@ -519,28 +513,19 @@ public class CameraActivity extends AppCompatActivity {
         try {
             mFFmpeg.execute(command, new ExecuteBinaryResponseHandler() {
                 @Override
-                public void onFailure(String s) {
-                    Log.i(TAG, "execute, onFailure, s=" + s);
-                }
+                public void onFailure(String s) {}
 
                 @Override
-                public void onSuccess(String s) {
-                    Log.i(TAG, "execute, onSuccess, s=" + s);
-                }
+                public void onSuccess(String s) {}
 
                 @Override
-                public void onProgress(String s) {
-                    Log.i(TAG, "execute, onProgress, s=" + s);
-                }
+                public void onProgress(String s) {}
 
                 @Override
-                public void onStart() {
-                    Log.i(TAG, "execute, onStart, command=" + command);
-                }
+                public void onStart() {}
 
                 @Override
                 public void onFinish() {
-                    Log.i(TAG, "execute, onFinish, command=" + command);
                     deleteDirectory(dirForVideo);
                 }
             });
