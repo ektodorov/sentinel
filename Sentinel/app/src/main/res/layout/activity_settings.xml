@@ -135,7 +135,7 @@
                 android:layout_toLeftOf="@+id/checkBoxRecordVideosSettings"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
-                android:text="@string/record_pictures"
+                android:text="@string/record_videos"
                 android:id="@+id/textViewRecordVideosSettings"/>
 
             <CheckBox
