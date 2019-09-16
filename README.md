@@ -50,4 +50,4 @@ project's libs directory.
 
 Downloads:<br>
 
-<a href="https://github.com/ektodorov/sentinel/tree/master/Sentinel_Desktop/Sentinel.zip">Desktop</a>
+<a href="https://github.com/ektodorov/sentinel/blob/master/Downloads/Sentinel.zip">Desktop</a>
