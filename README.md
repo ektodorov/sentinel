@@ -48,6 +48,6 @@ project's libs directory.
 <br>
 <br>
 
-In the Downloads/Desktop directory there is an archive with an executable Java application of Sentinel for Desktop.
-In order to run this application you need extract the archive which contains the executable jar and directory
-sentinel_lib. After that download the libraries from the links above and place them in the sentinel_lib directory.
+Downloads:<br>
+
+<a href="https://github.com/ektodorov/sentinel/tree/master/Sentinel_Desktop/Sentinel.zip">Desktop</a>
