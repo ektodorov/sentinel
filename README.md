@@ -50,4 +50,28 @@ project's libs directory.
 
 Downloads:<br>
 
-<a href="https://github.com/ektodorov/sentinel/blob/master/Downloads/Sentinel.zip">Desktop</a>
+<a href="https://github.com/ektodorov/sentinel/blob/master/Downloads/Sentinel.zip">Sentinel for Desktop</a>
+<br>
+- option to select video or images<br>
+- the images or videos will be recorded in the current working directory of the application.<br>
+<br>
+
+Supported OS - Windows, Linux, macOS.<br>
+You need Java runtime installed on the system to run the application.<br>
+<br>
+Run:<br>
+Windows and Linux<br>
+ - by double clicking on the Sentinel.jar<br>
+ - or from the command line / temrinal by typing:<br>
+<br>
+java -jar Sentinel.jar
+<br>
+<br>
+macOS you have to run from the terminal.<br>
+1.Applications -> Terminal<br>
+2.Go to the directory where you unarchied the Sentinel.zip and type<br>
+<br>
+java -jar Sentinel.jar<br>
+<br>
+3.Give permission to use the camera<br>
+4.When you want to close select the window of the Terminal.app and press Ctrl+C<br>
