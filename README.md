@@ -18,10 +18,10 @@ Description:<br>
 <a href="http://techzealous.blogspot.com/2018/03/sentinel-image-capture-software.html">http://techzealous.blogspot.com/2018/03/sentinel-image-capture-software.html</a><br>
 
 
-# Sentinel Desktop Java application
-Uses the computers camera to records images or videos when there is detected movement in the image.<br>
+# Sentinel Java application
+Uses the computer's web camera to record images or videos when there is detected movement in the video.<br>
 
-The source is in the Sentinel_Desktop directory.<br>
+The source is in the Sentinel_WebCamera directory.<br>
 To build the project you need to download the libraries from the links below and to copy them to the
 project's libs directory.
 <br>
@@ -50,7 +50,7 @@ project's libs directory.
 
 Downloads:<br>
 
-<a href="https://github.com/ektodorov/sentinel/blob/master/Downloads/Sentinel.zip">Sentinel for Desktop</a>
+<a href="https://github.com/ektodorov/sentinel/blob/master/Downloads/Sentinel.zip">Sentinel WebCamera for Windows, Linux, macOS</a>
 <br>
 - option to select video or images<br>
 - the images or videos will be recorded in the current working directory of the application.<br>
