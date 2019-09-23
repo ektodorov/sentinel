@@ -206,7 +206,7 @@ public class ImageUtils {
     /**
      * Creates a bitmap with the size of the passed in bitmap,
      * containing two colored rectangles with the dimensions of the passed in rectangles.
-     * It is intendet to be used to show the rectangle that stayed the same between two frames calculated in stabilizeImage and
+     * It is intended to be used to show the rectangle that stayed the same between two frames calculated in stabilizeImage and
      * the rectangle of difference in that rectangle returned by getDifference.
      * @param aRect rectangle to be drawn
      * @param aRectDiff rectangle to be drawn

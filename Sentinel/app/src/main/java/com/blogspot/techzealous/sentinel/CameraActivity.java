@@ -206,7 +206,9 @@ public class CameraActivity extends AppCompatActivity {
                         mBitmapPrevious = mBitmapCurrent;
 
                         //display both rectangles
-                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        //final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rect, rectDiff, mBitmapCurrent);
+                        //display only one rectangle
+                        final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                         final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                         if(hasDiff) {
@@ -426,7 +428,11 @@ public class CameraActivity extends AppCompatActivity {
                     if (pictureFile == null){
                         return;
                     }
-                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
+                    Bitmap bitmapTexture = aTextureView.getBitmap();
+                    if(bitmapTexture == null) {
+                        return;
+                    }
+                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, true);
 
                     date = new Date();
                     time = mDateFormat.format(date);

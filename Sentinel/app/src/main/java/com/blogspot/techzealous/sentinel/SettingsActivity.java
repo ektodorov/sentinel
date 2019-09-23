@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -156,6 +157,8 @@ public class SettingsActivity extends AppCompatActivity {
                 ConstantsS.setRecordVideos(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, isChecked).commit();
+
+                Log.i("ir2525", "pref_record_videos=" + mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, false));
             }
         });
     }
