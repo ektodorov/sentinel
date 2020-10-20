@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.blogspot.techzealous.sentinel"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -28,4 +28,5 @@ dependencies {
     implementation files('libs/Catalano.Core.jar')
     implementation files('libs/Catalano.Android.Image.jar')
     implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    implementation 'com.arthenica:mobile-ffmpeg-full:4.4'
 }

@@ -25,10 +25,12 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView;
 
+import com.arthenica.mobileffmpeg.Config;
+import com.arthenica.mobileffmpeg.ExecuteCallback;
+import com.arthenica.mobileffmpeg.FFmpeg;
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
@@ -49,12 +51,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+//import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+//import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+
 public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
     private static final int UPDATE_INTERVAL = 500;
     private static final int RECORD_INTERVAL = 250;//4 fps
-    private static final int FPS = 1000 / RECORD_INTERVAL;
+    private static final int FPS = (1000 / RECORD_INTERVAL) - 2;
     private static final int MB = 1024 * 1024;
     private static final int kSampleSize = 16;
 
@@ -74,7 +79,7 @@ public class CameraActivity extends AppCompatActivity {
     private Bitmap mBitmapCurrent;
     private volatile boolean mIsTextureViewDestroyed;
     private volatile boolean mIsRecording;
-    private FFmpeg mFFmpeg;
+    private com.github.hiteshsondhi88.libffmpeg.FFmpeg mFFmpeg;
     private int mVideoSequence;
     private SimpleDateFormat mDateFormat;
     private Paint mPaintText;
@@ -238,6 +243,7 @@ public class CameraActivity extends AppCompatActivity {
                     final Bitmap bitmapRect = imageUtils.getBitmapDiffRect(rectDiff, mBitmapCurrent);
                     final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
+                    Log.i(TAG, "242, hasDiff=" + hasDiff);
                     if(hasDiff) {
                         //recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));
                         recordStart(mTextureView);
@@ -458,34 +464,41 @@ public class CameraActivity extends AppCompatActivity {
                     }
                     index++;
                 }
-                String dirForVideo = getDirForVideo(String.valueOf(sequence)).getPath();
-                mVideoSequence++;
-
+                final String dirForVideo = getDirForVideo(String.valueOf(sequence)).getPath();
                 String inputFileAbsolutePath = getDirForVideo(String.valueOf(sequence)).getPath()
                         + File.separator + "%d.jpg";
+                mVideoSequence++;
                 String outputFileAbsolutePath = getFileVideo("mp4").getPath();
                 Log.i(TAG, "inputFile=" + inputFileAbsolutePath + ", outputFile=" + outputFileAbsolutePath);
                 String fps = String.valueOf(FPS);
+                //ffmpeg -framerate 1 -i "number%d.png" -r 23 -vcodec mpeg4 movie.mp4
                 String[] command = {
                         "-y",//overwrite output file without asking
+                        "-framerate",
+                        fps,
                         "-i",//input files
                         inputFileAbsolutePath,
-                        "-s",//video output size
-                        "640x480",
-                        "-r",//frame rate
-                        fps,
                         "-vcodec",//video codec
                         "mpeg4",
-                        "-b:v",//video bitrate
-                        "150k",
-//                        "-b:a",//audio bitrate
-//                        "48000",
-//                        "-ac",//audio channels
-//                        "2",
-//                        "-ar",//sampling rate for audio stream
-//                        "22050",
                         outputFileAbsolutePath};
-                execFFmpegBinary(command, dirForVideo);
+//                execFFmpegBinary(command, dirForVideo);
+                Log.i(TAG, "490, recordVideo");
+                String strCommand = String.format("-y -framerate %s -i %s -r 23 -vcodec mpeg4 %s",
+                        fps, inputFileAbsolutePath, outputFileAbsolutePath);
+                long executionId = FFmpeg.executeAsync(strCommand, new ExecuteCallback() {
+                    @Override
+                    public void apply(long executionId, int returnCode) {
+                        if (returnCode == Config.RETURN_CODE_SUCCESS) {
+                            Log.i(TAG, "Async command execution completed successfully.");
+                        } else if (returnCode == Config.RETURN_CODE_CANCEL) {
+                            Log.i(TAG, "Async command execution cancelled by user.");
+                        } else {
+                            Log.i(TAG, String.format("Async command execution failed with rc=%d.", returnCode));
+                            Config.printLastCommandOutput(Log.INFO);
+                        }
+                        CameraActivity.deleteDirectory(dirForVideo);
+                    }
+                });
             }
         });
     }
@@ -493,7 +506,7 @@ public class CameraActivity extends AppCompatActivity {
     private void loadFFMpegBinary() {
         try {
             if (mFFmpeg == null) {
-                mFFmpeg = FFmpeg.getInstance(this);
+                mFFmpeg = com.github.hiteshsondhi88.libffmpeg.FFmpeg.getInstance(this);
             }
             mFFmpeg.loadBinary(new LoadBinaryResponseHandler() {
                 @Override
@@ -532,6 +545,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 @Override
                 public void onFinish() {
+                    Log.i(TAG, "555, execFFmpegBinary, onFinish");
                     deleteDirectory(dirForVideo);
                 }
             });
@@ -543,7 +557,10 @@ public class CameraActivity extends AppCompatActivity {
     private static void deleteDirectory(String aDirectory) {
         File dir = new File(aDirectory);
         String[] files = dir.list();
-        int count = files.length;
+        int count = 0;
+        if(files != null) {
+            count = files.length;
+        }
         for(int x = 0; x < count; x++) {
             File file = new File(dir, files[x]);
             file.delete();
