@@ -113,6 +113,7 @@ public class CameraActivity extends AppCompatActivity {
                     finish();
                 }
             });
+            adb.create().show();
             return;
         }
 
@@ -310,6 +311,11 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
     }
@@ -317,6 +323,11 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     private boolean checkCameraHardware(Context context) {
