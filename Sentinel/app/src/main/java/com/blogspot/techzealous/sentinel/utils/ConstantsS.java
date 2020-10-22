@@ -8,7 +8,7 @@ public class ConstantsS {
 
     private static boolean sStabilizationEnabled = false;
     private static int sThresholdStabilization = 70;
-    private static int sThresholdDifference = 85;
+    private static int sThresholdDifference = 125;
     private static boolean sPlaySoundEnabled = false;
     private static boolean sRecordPictures = false;
     private static boolean sRecordVideos = true;

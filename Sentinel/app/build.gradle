@@ -27,6 +27,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation files('libs/Catalano.Core.jar')
     implementation files('libs/Catalano.Android.Image.jar')
-    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
     implementation 'com.arthenica:mobile-ffmpeg-full:4.4'
 }

@@ -30,10 +30,6 @@ import com.arthenica.mobileffmpeg.ExecuteCallback;
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
-import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,7 +75,6 @@ public class CameraActivity extends AppCompatActivity {
     private Bitmap mBitmapCurrent;
     private volatile boolean mIsTextureViewDestroyed;
     private volatile boolean mIsRecording;
-    private com.github.hiteshsondhi88.libffmpeg.FFmpeg mFFmpeg;
     private int mVideoSequence;
     private SimpleDateFormat mDateFormat;
     private Paint mPaintText;
@@ -121,7 +116,6 @@ public class CameraActivity extends AppCompatActivity {
             return;
         }
 
-        loadFFMpegBinary();
         mHandlerMain = new Handler(Looper.getMainLooper());
         mExecutorDiff = Executors.newSingleThreadExecutor();
         mExecutorRecord = Executors.newSingleThreadExecutor();
@@ -472,17 +466,6 @@ public class CameraActivity extends AppCompatActivity {
                 Log.i(TAG, "inputFile=" + inputFileAbsolutePath + ", outputFile=" + outputFileAbsolutePath);
                 String fps = String.valueOf(FPS);
                 //ffmpeg -framerate 1 -i "number%d.png" -r 23 -vcodec mpeg4 movie.mp4
-                String[] command = {
-                        "-y",//overwrite output file without asking
-                        "-framerate",
-                        fps,
-                        "-i",//input files
-                        inputFileAbsolutePath,
-                        "-vcodec",//video codec
-                        "mpeg4",
-                        outputFileAbsolutePath};
-//                execFFmpegBinary(command, dirForVideo);
-                Log.i(TAG, "490, recordVideo");
                 String strCommand = String.format("-y -framerate %s -i %s -r 23 -vcodec mpeg4 %s",
                         fps, inputFileAbsolutePath, outputFileAbsolutePath);
                 long executionId = FFmpeg.executeAsync(strCommand, new ExecuteCallback() {
@@ -501,57 +484,6 @@ public class CameraActivity extends AppCompatActivity {
                 });
             }
         });
-    }
-
-    private void loadFFMpegBinary() {
-        try {
-            if (mFFmpeg == null) {
-                mFFmpeg = com.github.hiteshsondhi88.libffmpeg.FFmpeg.getInstance(this);
-            }
-            mFFmpeg.loadBinary(new LoadBinaryResponseHandler() {
-                @Override
-                public void onFailure() {
-                    Log.i(TAG, "ffmpeg loadBinary, onFailure");
-                }
-
-                @Override
-                public void onSuccess() {
-                    Log.i(TAG, "ffmpeg loadBinary, onSuccess");
-                }
-            });
-        } catch (FFmpegNotSupportedException e) {
-            e.printStackTrace();
-            mFFmpeg = null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            mFFmpeg = null;
-        }
-    }
-
-    private void execFFmpegBinary(final String[] command, final String dirForVideo) {
-        try {
-            mFFmpeg.execute(command, new ExecuteBinaryResponseHandler() {
-                @Override
-                public void onFailure(String s) {}
-
-                @Override
-                public void onSuccess(String s) {}
-
-                @Override
-                public void onProgress(String s) {}
-
-                @Override
-                public void onStart() {}
-
-                @Override
-                public void onFinish() {
-                    Log.i(TAG, "555, execFFmpegBinary, onFinish");
-                    deleteDirectory(dirForVideo);
-                }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
-        }
     }
 
     private static void deleteDirectory(String aDirectory) {
