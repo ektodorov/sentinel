@@ -13,6 +13,8 @@ public class ConstantsS {
     private static boolean sRecordPictures = false;
     private static boolean sRecordVideos = true;
     private static Ringtone sRingtone;
+    private static int sRecordInterval = 100;//10 fps
+    private static int sFPS = (1000 / sRecordInterval) - 2;
 
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
     public static final String PREF_THRESHOLD_STABILIZATION = "thresholdstabilization";
@@ -20,6 +22,7 @@ public class ConstantsS {
     public static final String PREF_PLAY_SOUND = "playsound";
     public static final String PREF_RECORD_PICTURES = "recordpictures";
     public static final String PREF_RECORD_VIDEOS = "recordvideos";
+    public static final String PREF_RECORD_INTERVAL = "recordinterval";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";
@@ -102,6 +105,20 @@ public class ConstantsS {
     public static boolean getRecordVideos() {return sRecordVideos;}
 
     public static void setRecordVideos(boolean aIsRecordVideos) {sRecordVideos = aIsRecordVideos;}
+
+    public static void setRecordInterval(int aRecordInterval) {
+        sRecordInterval = aRecordInterval;
+        sFPS = (1000 / sRecordInterval) - 2;
+    }
+
+    public static int getRecordInterval() {return sRecordInterval;}
+
+    public static void setFPS(int aFPS) {
+        sFPS = aFPS - 2;
+        sRecordInterval = 1000 / aFPS;
+    }
+
+    public static int getFPS() {return sFPS;}
 
     public static boolean isExternalStorageAvailable() {
         String state = Environment.getExternalStorageState();

@@ -159,5 +159,14 @@
 
         </RelativeLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:gravity="center_vertical"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:text="@string/record_video_fps"
+            android:id="@+id/textViewFPS"/>
+
     </LinearLayout>
 </ScrollView>

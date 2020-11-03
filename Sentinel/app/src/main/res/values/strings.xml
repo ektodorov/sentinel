@@ -25,6 +25,7 @@
     <string name="record_pictures">Record pictures</string>
     <string name="record_videos">Record videos</string>
     <string name="record_description">Records while there is a motion detected and until there is free space on the external storage.\n%1$s</string>
+    <string name="record_video_fps">Video record frames per second</string>
     <string name="about">About</string>
     <string name="license">License</string>
     <string name="disclaimer">Disclaimer</string>

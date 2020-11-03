@@ -54,8 +54,6 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
     private static final int UPDATE_INTERVAL = 500;
-    private static final int RECORD_INTERVAL = 250;//4 fps
-    private static final int FPS = (1000 / RECORD_INTERVAL) - 2;
     private static final int MB = 1024 * 1024;
     private static final int kSampleSize = 16;
 
@@ -416,7 +414,7 @@ public class CameraActivity extends AppCompatActivity {
                     }
 
                     try {
-                        Thread.sleep(RECORD_INTERVAL);
+                        Thread.sleep(ConstantsS.getRecordInterval());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -463,7 +461,7 @@ public class CameraActivity extends AppCompatActivity {
                     }
 
                     try {
-                        Thread.sleep(RECORD_INTERVAL);
+                        Thread.sleep(ConstantsS.getRecordInterval());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -475,7 +473,7 @@ public class CameraActivity extends AppCompatActivity {
                 mVideoSequence++;
                 String outputFileAbsolutePath = getFileVideo("mp4").getPath();
                 Log.i(TAG, "inputFile=" + inputFileAbsolutePath + ", outputFile=" + outputFileAbsolutePath);
-                String fps = String.valueOf(FPS);
+                String fps = String.valueOf(ConstantsS.getFPS());
                 //ffmpeg -framerate 1 -i "number%d.png" -r 23 -vcodec mpeg4 movie.mp4
                 String strCommand = String.format("-y -framerate %s -i %s -r 23 -vcodec mpeg4 %s",
                         fps, inputFileAbsolutePath, outputFileAbsolutePath);
@@ -493,6 +491,13 @@ public class CameraActivity extends AppCompatActivity {
                         CameraActivity.deleteDirectory(dirForVideo);
                     }
                 });
+
+//                try {
+//                    Process proc = Runtime.getRuntime().exec("");
+//                    InputStream is = proc.getInputStream();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
     }

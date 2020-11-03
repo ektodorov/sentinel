@@ -18,6 +18,7 @@ public class DialogSlider {
     private static final String TAG = "DialogSlider";
     private String mTitle;
     private String mMessage;
+    private int mMaximum = 100;
     private OnValueSetListener mOnValueSet;
     private AlertDialog mAlertDialog;
     private SeekBar mSeekBar;
@@ -35,6 +36,11 @@ public class DialogSlider {
         mTitle = aTitle;
         mMessage = aMessage;
         mOnValueSet = aOnValueSetListener;
+    }
+
+    public void createAlertDialog(Context aContext, ViewGroup aViewRoot, int aProgress, int aMaximum) {
+        mMaximum = aMaximum;
+        createAlertDialog(aContext, aViewRoot, aProgress);
     }
 
     public void createAlertDialog(Context aContext, ViewGroup aViewRoot, int aProgress) {
@@ -122,6 +128,7 @@ public class DialogSlider {
         });
 
         mTextViewProgress.setText(String.valueOf(aProgress));
+        mSeekBar.setMax(mMaximum);
         mSeekBar.setProgress(aProgress);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -134,6 +141,10 @@ public class DialogSlider {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+    }
+
+    public void setMax(int aMaximum) {
+        mMaximum = aMaximum;
     }
 
     public void showDialog() {

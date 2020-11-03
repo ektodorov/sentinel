@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -34,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
     private RelativeLayout mRelativeLayoutVideos;
     private TextView mTextViewRecordVideosDesc;
     private CheckBox mCheckBoxRecordVideos;
+    private TextView mTextViewRecordVideoFPS;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -57,6 +57,7 @@ public class SettingsActivity extends AppCompatActivity {
         mRelativeLayoutVideos = findViewById(R.id.relativeLayoutVideosSettings);
         mTextViewRecordVideosDesc = findViewById(R.id.textViewRecordVideosDescSettings);
         mCheckBoxRecordVideos = findViewById(R.id.checkBoxRecordVideosSettings);
+        mTextViewRecordVideoFPS = findViewById(R.id.textViewFPS);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
@@ -157,8 +158,23 @@ public class SettingsActivity extends AppCompatActivity {
                 ConstantsS.setRecordVideos(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, isChecked).commit();
+            }
+        });
 
-                Log.i("ir2525", "pref_record_videos=" + mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, false));
+        mTextViewRecordVideoFPS.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogSlider dialog = new DialogSlider(getString(R.string.record_videos),
+                        getString(R.string.record_video_fps), new OnValueSetListener()
+                {
+                    @Override
+                    public void onValueSet(int aValue) {
+                        ConstantsS.setFPS(aValue);
+                        mPrefs.edit().putInt(ConstantsS.PREF_RECORD_INTERVAL, ConstantsS.getRecordInterval()).commit();
+                    }
+                });
+                dialog.createAlertDialog(SettingsActivity.this, mLinearLayoutRoot, ConstantsS.getFPS(), 20);
+                dialog.showDialog();
             }
         });
     }
