@@ -385,7 +385,7 @@ public class CameraActivity extends AppCompatActivity {
                     if (pictureFile == null){
                         return;
                     }
-                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, false);
+                    Bitmap bitmap = aTextureView.getBitmap().copy(Bitmap.Config.ARGB_8888, true);
 
                     date = new Date();
                     time = mDateFormat.format(date);
