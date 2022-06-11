@@ -23,12 +23,13 @@
         </activity>
         <activity android:name=".CameraActivity" />
         <activity
-            android:name=".VideoActivity"
-            android:screenOrientation="portrait"/>
+            android:name=".CameraActivity2"
+            android:hardwareAccelerated="true" />
+        <activity
+            android:name=".VideoActivity" />
         <activity android:name=".PictureActivity" />
         <activity
-            android:name=".SettingsActivity"
-            android:screenOrientation="portrait"/>
+            android:name=".SettingsActivity" />
     </application>
 
 </manifest>

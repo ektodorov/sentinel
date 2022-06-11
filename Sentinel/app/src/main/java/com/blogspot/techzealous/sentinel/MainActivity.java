@@ -29,12 +29,13 @@ import android.widget.TextView;
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ConstantsText;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    private static final int REQUEST_CODE_CAMERA = 101;
-    private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 102;
-    private static final int REQUEST_CODE_CAMERA_STORAGE = 103;
+    private static final int REQUEST_CODE_PERMISSIONS = 101;
 
     private Button mButtonSettings;
     private Button mButtonCamera;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, CameraActivity.class);
+                Intent i = new Intent(MainActivity.this, CameraActivity2.class);
                 startActivity(i);
             }
         });
@@ -90,26 +91,38 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        int permissionWriteDiskCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permissionRecordAudio = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        List<String> permissionList = new ArrayList<>();
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            permissionList.add(Manifest.permission.CAMERA);
+        }
+        if (permissionWriteDiskCheck != PackageManager.PERMISSION_GRANTED) {
+            permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (permissionRecordAudio != PackageManager.PERMISSION_GRANTED) {
+            permissionList.add(Manifest.permission.RECORD_AUDIO);
+        }
+        String[] permissions = new String[permissionList.size()];
+        for(int x = 0; x < permissionList.size(); x++) {
+            permissions[x] = permissionList.get(x);
+        }
+        if(permissions.length > 0) {
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         ConstantsS.setStabilizationEnabled(mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false));
         ConstantsS.setThresholdStabilization(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70));
         ConstantsS.setThresholdDifference(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85));
         ConstantsS.setPlaySoundEnabled(mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false));
         ConstantsS.setRecordPictures(mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false));
         ConstantsS.setRecordVideos(mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true));
-
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
-        int permissionWriteDiskCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED
-                && permissionWriteDiskCheck != PackageManager.PERMISSION_GRANTED)
-        {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_CAMERA_STORAGE);
-        } else if(permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CODE_CAMERA);
-        } else if(permissionWriteDiskCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
-        }
     }
 
     @Override

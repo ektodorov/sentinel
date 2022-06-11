@@ -78,6 +78,8 @@ public class CameraActivity extends AppCompatActivity {
     private int mVideoSequence;
     private SimpleDateFormat mDateFormat;
     private Paint mPaintText;
+    private int textPositionX;
+    private int textPositionY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +126,9 @@ public class CameraActivity extends AppCompatActivity {
         mDateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault());
         mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintText.setColor(Color.WHITE);
-        mPaintText.setTextSize(12 * getResources().getDisplayMetrics().density);
+        textPositionX = (int)(12 * getResources().getDisplayMetrics().density);
+        textPositionY = textPositionX;
+        mPaintText.setTextSize(textPositionX);
         mRunnableDiffPost = new Runnable() {
             @Override
             public void run() {
@@ -390,7 +394,7 @@ public class CameraActivity extends AppCompatActivity {
                     date = new Date();
                     time = mDateFormat.format(date);
                     Canvas canvas = new Canvas(bitmap);
-                    canvas.drawText(time, 10, 10, mPaintText);
+                    canvas.drawText(time, textPositionX, textPositionY, mPaintText);
 
                     try {
                         FileOutputStream fos = new FileOutputStream(pictureFile);
@@ -437,7 +441,7 @@ public class CameraActivity extends AppCompatActivity {
                     date = new Date();
                     time = mDateFormat.format(date);
                     Canvas canvas = new Canvas(bitmap);
-                    canvas.drawText(time, 10, 10, mPaintText);
+                    canvas.drawText(time, textPositionX, textPositionY, mPaintText);
 
                     try {
                         FileOutputStream fos = new FileOutputStream(pictureFile);

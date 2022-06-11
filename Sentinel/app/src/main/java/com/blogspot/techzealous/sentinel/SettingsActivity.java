@@ -91,8 +91,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 DialogSlider dialog = new DialogSlider(ConstantsS.STR_Stabilization,
-                        ConstantsS.STR_Stabilization_threshold, new OnValueSetListener()
-                {
+                        ConstantsS.STR_Stabilization_threshold, new OnValueSetListener() {
                     @Override
                     public void onValueSet(int aValue) {
                         ConstantsS.setThresholdStabilization(aValue);
@@ -109,8 +108,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 DialogSlider dialog = new DialogSlider(ConstantsS.STR_Difference,
-                        ConstantsS.STR_Difference_threshold, new OnValueSetListener()
-                {
+                        ConstantsS.STR_Difference_threshold, new OnValueSetListener() {
                     @Override
                     public void onValueSet(int aValue) {
                         ConstantsS.setThresholdDifference(aValue);
@@ -139,11 +137,11 @@ public class SettingsActivity extends AppCompatActivity {
             public void onClick(View view) {
                 boolean isChecked = !mCheckBoxRecordPictures.isChecked();
                 mCheckBoxRecordPictures.setChecked(isChecked);
-                mCheckBoxRecordVideos.setChecked(!isChecked);
+                //mCheckBoxRecordVideos.setChecked(!isChecked);
                 ConstantsS.setRecordPictures(isChecked);
-                ConstantsS.setRecordVideos(!isChecked);
+                //ConstantsS.setRecordVideos(!isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, isChecked).commit();
-                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, !isChecked).commit();
+                //mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, !isChecked).commit();
             }
         });
 
@@ -151,14 +149,12 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 boolean isChecked = !mCheckBoxRecordVideos.isChecked();
-                mCheckBoxRecordPictures.setChecked(!isChecked);
+                //mCheckBoxRecordPictures.setChecked(!isChecked);
                 mCheckBoxRecordVideos.setChecked(isChecked);
-                ConstantsS.setRecordPictures(!isChecked);
+                //ConstantsS.setRecordPictures(!isChecked);
                 ConstantsS.setRecordVideos(isChecked);
-                mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
+                //mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, isChecked).commit();
-
-                Log.i("ir2525", "pref_record_videos=" + mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, false));
             }
         });
     }
