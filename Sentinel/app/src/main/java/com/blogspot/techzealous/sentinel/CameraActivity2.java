@@ -65,8 +65,11 @@ import java.util.concurrent.TimeUnit;
 public class CameraActivity2 extends AppCompatActivity {
 
    private static final String TAG = "CameraActivity";
-   private static final int UPDATE_INTERVAL = 500;
-   private static final int RECORD_INTERVAL = 250;//4 fps
+   private static final int UPDATE_DIFF_INTERVAL_MS_WHILERECORDING = 10000;
+   private static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 2000;
+   private static int UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
+   private static final int RECORD_PICTURE_INTERVAL_MS = 500;//2 pictures per second
+   private static final int RECORD_VIDEO_INTERVAL_SECONDS = 15;//seconds
    private static final int FPS = 15;
    private static final int MB = 1024 * 1024;
    private static final int kSampleSize = 16;
@@ -153,7 +156,7 @@ public class CameraActivity2 extends AppCompatActivity {
                if(mIsTextureViewDestroyed) {
                   mHandlerMain.removeCallbacks(mRunnableDiffPost);
                } else {
-                  mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+                  mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_DIFF_INTERVAL_MS);
                }
                return;
             }
@@ -162,7 +165,7 @@ public class CameraActivity2 extends AppCompatActivity {
                if(mIsTextureViewDestroyed) {
                   mHandlerMain.removeCallbacks(mRunnableDiffPost);
                } else {
-                  mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+                  mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_DIFF_INTERVAL_MS);
                }
                return;
             }
@@ -272,7 +275,7 @@ public class CameraActivity2 extends AppCompatActivity {
             if(mIsTextureViewDestroyed) {
                mHandlerMain.removeCallbacks(mRunnableDiffPost);
             } else {
-               mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_INTERVAL);
+               mHandlerMain.postDelayed(mRunnableDiffPost, UPDATE_DIFF_INTERVAL_MS);
             }
          }
       };
@@ -291,12 +294,7 @@ public class CameraActivity2 extends AppCompatActivity {
                   if(strongThis == null) {
                      return;
                   }
-                  if(strongThis.mIsRecording && strongThis.mediaRecorder != null && strongThis.isMediaRecorderPrepared) {
-                     strongThis.recordVideoStop();
-                     strongThis.stopRecordingPreview();
-                     strongThis.initRecorder();
-                     strongThis.createCameraPreview();
-                  }
+                  strongThis.recordStop();
                }
             });
          }
@@ -341,7 +339,7 @@ public class CameraActivity2 extends AppCompatActivity {
          public void onClick(View view) {
             if(mIsRecording) {
                mButtonStart.setText("Start");
-               recordVideoStop();
+               recordVideoStop(true);
                stopRecordingPreview();
                initRecorder();
                createCameraPreview();
@@ -420,7 +418,9 @@ public class CameraActivity2 extends AppCompatActivity {
    private void recordStart(TextureView aTextureView) {
       if(mIsRecording) {
          if(mFutureRecordStop != null) {mFutureRecordStop.cancel(false);}
-         mFutureRecordStop = mScheduledExecutorRecord.schedule(mRunnableRecordStop, 7, TimeUnit.SECONDS);
+         mFutureRecordStop = mScheduledExecutorRecord.schedule(mRunnableRecordStop,
+                 RECORD_VIDEO_INTERVAL_SECONDS,
+                 TimeUnit.SECONDS);
          return;
       }
 
@@ -431,6 +431,14 @@ public class CameraActivity2 extends AppCompatActivity {
       }
    }
 
+   private void recordStop() {
+      boolean wasRecording = mIsRecording;
+      mIsRecording = false;
+      if(wasRecording) {
+         recordVideoStop(wasRecording);
+      }
+   }
+
    private void recordPicture(final TextureView aTextureView) {
       mExecutorRecord.execute(new Runnable() {
          @Override
@@ -438,7 +446,7 @@ public class CameraActivity2 extends AppCompatActivity {
             Date date = null;
             String time = null;
             while(mIsRecording) {
-               File pictureFile = CameraActivity.getFilePicture(null, "jpg");
+               File pictureFile = CameraActivity2.getFilePicture(null, "jpg");
                if (pictureFile == null){
                   return;
                }
@@ -466,7 +474,7 @@ public class CameraActivity2 extends AppCompatActivity {
                }
 
                try {
-                  Thread.sleep(RECORD_INTERVAL);
+                  Thread.sleep(RECORD_PICTURE_INTERVAL_MS);
                } catch (InterruptedException e) {
                   e.printStackTrace();
                }
@@ -482,18 +490,23 @@ public class CameraActivity2 extends AppCompatActivity {
       try {
          mediaRecorder.start();
          mIsRecording = true;
+         UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_WHILERECORDING;
       } catch (IllegalStateException ex) {
          ex.printStackTrace();
       }
    }
 
-   private void recordVideoStop() {
+   private void recordVideoStop(boolean wasRecording) {
       if(mFutureRecordStop != null) {mFutureRecordStop.cancel(false);}
-      if(mediaRecorder != null && mIsRecording && isMediaRecorderPrepared) {
+      if(wasRecording && mediaRecorder != null && isMediaRecorderPrepared) {
          mediaRecorder.stop();
          mediaRecorder = null;
-         mIsRecording = false;
          isMediaRecorderPrepared = false;
+
+         stopRecordingPreview();
+         initRecorder();
+         createCameraPreview();
+         UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
       }
    }
 
@@ -595,7 +608,8 @@ public class CameraActivity2 extends AppCompatActivity {
 //               recorder.start();
 //               recording = true;
                updatePreview();
-               strongThis.mHandlerMain.postDelayed(strongThis.mRunnableDiffPost, CameraActivity2.UPDATE_INTERVAL);
+               strongThis.mHandlerMain.removeCallbacks(strongThis.mRunnableDiffPost);
+               strongThis.mHandlerMain.postDelayed(strongThis.mRunnableDiffPost, CameraActivity2.UPDATE_DIFF_INTERVAL_MS);
             }
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -630,7 +644,7 @@ public class CameraActivity2 extends AppCompatActivity {
    }
 
    private void closeCamera() {
-      recordVideoStop();
+      recordStop();
       stopRecordingPreview();
       if (null != mCameraDevice) {
          mCameraDevice.close();
