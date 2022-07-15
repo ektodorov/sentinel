@@ -71,7 +71,7 @@ public class CameraActivity2 extends AppCompatActivity {
    private static final int RECORD_PICTURE_INTERVAL_MS = 500;//2 pictures per second
    private static final int RECORD_VIDEO_INTERVAL_SECONDS = 15;//seconds
    private static final int FPS = 15;
-   private static final int MB = 1024 * 1024;
+   private static final int MB_FREE_MIN = 1024 * 1024 * 100;//100MB
    private static final int kSampleSize = 16;
    private static final int REQUEST_CODE_STORAGE = 1234;
    private static final int REQUEST_CODE_CAMERA = 2345;
@@ -768,7 +768,7 @@ public class CameraActivity2 extends AppCompatActivity {
       }
 
       long freeSpace = mediaStorageDir.getFreeSpace();
-      if(freeSpace < MB) {
+      if(freeSpace < MB_FREE_MIN) {
          Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
       }
@@ -791,7 +791,7 @@ public class CameraActivity2 extends AppCompatActivity {
       }
 
       long freeSpace = mediaStorageDir.getFreeSpace();
-      if(freeSpace < MB) {
+      if(freeSpace < MB_FREE_MIN) {
          Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(getDirForPictures(), 9);
       }
@@ -822,8 +822,9 @@ public class CameraActivity2 extends AppCompatActivity {
       }
 
       long freeSpace = mediaStorageDir.getFreeSpace();
-      if(freeSpace < MB) {
+      if(freeSpace < MB_FREE_MIN) {
          Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         freeUpSpace(mediaStorageDir, 9);
          return null;
       }
 
