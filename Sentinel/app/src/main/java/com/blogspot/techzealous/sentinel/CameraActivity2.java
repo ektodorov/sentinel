@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CameraActivity2 extends AppCompatActivity {
 
-   private static final String TAG = "CameraActivity";
+   private static final String TAG = "CameraActivity2";
    private static final int UPDATE_DIFF_INTERVAL_MS_WHILERECORDING = 10000;
    private static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 2000;
    private static int UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
@@ -440,13 +440,15 @@ public class CameraActivity2 extends AppCompatActivity {
    }
 
    private void recordPicture(final TextureView aTextureView) {
+      final WeakReference<CameraActivity2> weakThis = new WeakReference<>(this);
       mExecutorRecord.execute(new Runnable() {
          @Override
          public void run() {
+            CameraActivity2 strongThis = weakThis.get();
             Date date = null;
             String time = null;
             while(mIsRecording) {
-               File pictureFile = CameraActivity2.getFilePicture(null, "jpg");
+               File pictureFile = CameraActivity2.getFilePicture(strongThis, null, "jpg");
                if (pictureFile == null){
                   return;
                }
@@ -685,8 +687,8 @@ public class CameraActivity2 extends AppCompatActivity {
       if(!ConstantsS.getRecordVideos()) {
          return;
       }
-      File file = getFilePictureForVideo(mDateFormatFile.format(new Date()), "mp4");
-      Log.i(TAG, "initRecorder, 662, file=" + file);
+      File file = getFilePictureForVideo(this, mDateFormatFile.format(new Date()), "mp4");
+      Log.i(TAG, "initRecorder, 691, file=" + file);
 
 //      recorder = new MediaRecorder();
 //      recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -730,8 +732,14 @@ public class CameraActivity2 extends AppCompatActivity {
    }
 
    private static void freeUpSpace(File aDirectory, int aDeleteNumberOfFiles) {
+      if(aDirectory == null) {
+         return;
+      }
       ArrayList<File> sortedFiles = new ArrayList<>();
       String[] files = aDirectory.list();
+      if(files == null) {
+         return;
+      }
       for(int x = 0; x <files.length ; x++) {
          File file = new File(aDirectory.getPath(), files[x]);
          sortedFiles.add(file);
@@ -754,14 +762,16 @@ public class CameraActivity2 extends AppCompatActivity {
       }
       for(int x = 0; x < aDeleteNumberOfFiles; x++) {
          File file = sortedFiles.get(x);
-         file.delete();
+         if(file != null) {
+            file.delete();
+         }
       }
    }
 
-   public static File getFilePicture(String aFileName, String aFileExtension){
+   public static File getFilePicture(Context context, String aFileName, String aFileExtension){
       if(!ConstantsS.isExternalStorageAvailable()) {return null;}
 
-      File mediaStorageDir = getDirForPictures();
+      File mediaStorageDir = getDirForPictures(context);
 
       if (!mediaStorageDir.exists()){
          if (!mediaStorageDir.mkdirs()){return null;}
@@ -774,48 +784,48 @@ public class CameraActivity2 extends AppCompatActivity {
       }
 
       String timeStamp = aFileName;
-      if(timeStamp != null) {
+      if(timeStamp == null) {
          timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
       }
       File filePicture = new File(mediaStorageDir.getPath() + File.separator + timeStamp + "." + aFileExtension);
       return filePicture;
    }
 
-   public static File getFilePictureForVideo(String aFileName, String aFileExtension){
+   public static File getFilePictureForVideo(Context context, String aFileName, String aFileExtension){
       if(!ConstantsS.isExternalStorageAvailable()) {return null;}
 
-      File mediaStorageDir = getDirForVideo();
+      File mediaStorageDir = getDirForVideo(context);
 
       if (!mediaStorageDir.exists()){
-         if (!mediaStorageDir.mkdirs()){return null;}
+         if (!mediaStorageDir.mkdirs()){
+            return null;
+         }
       }
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
          Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
-         freeUpSpace(getDirForPictures(), 9);
+         freeUpSpace(getDirForPictures(context), 9);
       }
 
       File filePicture = new File(mediaStorageDir.getPath() + File.separator + aFileName + "." + aFileExtension);
       return filePicture;
    }
 
-   public static File getDirForPictures() {
-      File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-              Environment.DIRECTORY_PICTURES), "sentinel");
+   public static File getDirForPictures(Context context) {
+      File mediaStorageDir = new File(context.getExternalFilesDir(null), "sentinel_pic");
       return mediaStorageDir;
    }
 
-   public static File getDirForVideo() {
-      File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-              Environment.DIRECTORY_PICTURES), "sentinel");
+   public static File getDirForVideo(Context context) {
+      File mediaStorageDir = new File(context.getExternalFilesDir(null), "sentinel_video");
       return mediaStorageDir;
    }
 
-   public static File getFileVideo(String aFileExtension){
+   public static File getFileVideo(Context context, String aFileExtension){
       if(!ConstantsS.isExternalStorageAvailable()) {return null;}
 
-      File mediaStorageDir = getDirForPictures();
+      File mediaStorageDir = getDirForPictures(context);
 
       if (!mediaStorageDir.exists()){
          if (!mediaStorageDir.mkdirs()){return null;}
@@ -825,7 +835,6 @@ public class CameraActivity2 extends AppCompatActivity {
       if(freeSpace < MB_FREE_MIN) {
          Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
-         return null;
       }
 
       String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());

@@ -1,6 +1,7 @@
 package com.blogspot.techzealous.sentinel;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,13 +12,16 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,7 +33,23 @@ import android.widget.TextView;
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ConstantsText;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.lang.ref.WeakReference;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonCamera;
     private Button mButtonVideo;
     private Button mButtonPicture;
+    private Button mButtonPrivacyPolicy;
+    private Button mButtonDisclaimer;
+    private Button mButtonTermsAndConditions;
+    private Button mButtonLicense;
 
     private SharedPreferences mPrefs;
 
@@ -53,40 +77,103 @@ public class MainActivity extends AppCompatActivity {
         mButtonCamera = (Button)findViewById(R.id.buttonCameraMain);
         mButtonVideo = (Button)findViewById(R.id.buttonVideoMain);
         mButtonPicture = (Button)findViewById(R.id.buttonPictureMain);
+        mButtonPrivacyPolicy = findViewById(R.id.buttonPrivacyPolicy);
+        mButtonDisclaimer = findViewById(R.id.buttonDisclaimer);
+        mButtonTermsAndConditions = findViewById(R.id.buttonTermsAndConditions);
+        mButtonLicense = findViewById(R.id.buttonLicense);
 
         Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + String.valueOf(R.raw.beep07));
         Ringtone ringtone = RingtoneManager.getRingtone(this, soundUri);
         ConstantsS.setRingtone(ringtone);
 
+        final WeakReference<MainActivity> weakThis = new WeakReference<>(this);
         mButtonSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
                 Intent i = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(i);
+                strongThis.startActivity(i);
             }
         });
 
         mButtonCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
                 Intent i = new Intent(MainActivity.this, CameraActivity2.class);
-                startActivity(i);
+                strongThis.startActivity(i);
             }
         });
 
         mButtonVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
                 Intent i = new Intent(MainActivity.this, VideoActivity.class);
-                startActivity(i);
+                strongThis.startActivity(i);
             }
         });
 
         mButtonPicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
                 Intent i = new Intent(MainActivity.this, PictureActivity.class);
-                startActivity(i);
+                strongThis.startActivity(i);
+            }
+        });
+
+        mButtonPrivacyPolicy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+                strongThis.showDialog(ConstantsText.PRIVACY_POLICY);
+            }
+        });
+
+        mButtonDisclaimer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+                strongThis.showDialog(ConstantsText.DISCLAIMER);
+            }
+        });
+        mButtonTermsAndConditions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+                strongThis.showDialog(ConstantsText.TERMS_AND_CONDITIONS);
+            }
+        });
+        mButtonLicense.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+                strongThis.showDialog(ConstantsText.LICENSE);
             }
         });
 
@@ -125,37 +212,10 @@ public class MainActivity extends AppCompatActivity {
         ConstantsS.setRecordVideos(mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    private void showDialog(String text) {
         LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = layoutInflater.inflate(R.layout.dialog_about, null, false);
         TextView textView = view.findViewById(R.id.textViewContentDialogAbout);
-
-        String text = "";
-        switch (item.getItemId()) {
-            case R.id.menuPrivacyPolicy:
-                text = ConstantsText.PRIVACY_POLICY;
-                break;
-            case R.id.menuDisclaimer:
-                text = ConstantsText.DISCLAIMER;
-                break;
-            case R.id.menuTC:
-                text = ConstantsText.TERMS_AND_CONDITIONS;
-                break;
-            case R.id.menuAbout:
-                text = ConstantsText.LICENSE;
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             textView.setText(Html.fromHtml(text, Html.FROM_HTML_MODE_COMPACT));
         } else {
@@ -173,6 +233,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         adb.create().show();
-        return true;
+    }
+
+    public static void requestStoragePermission(Activity activity, int requestCode) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {//API 29, Android 10
+            int permissionCheck = PermissionChecker.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
+            }
+        }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {//API 32, Android 12
+            int permissionCheck = PermissionChecker.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, requestCode);
+            }
+        } else {//API 33+, Android 13+
+            int permissionImages = PermissionChecker.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES);
+            int permissionVideo = PermissionChecker.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO);
+            List<String> permissions = new ArrayList<>();
+            if (permissionImages != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+            if (permissionVideo != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.READ_MEDIA_VIDEO);
+            }
+            if (permissions.size() != 0) {
+                ActivityCompat.requestPermissions(activity, permissions.toArray(new String[0]), requestCode);
+            }
+        }
     }
 }

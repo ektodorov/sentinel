@@ -327,6 +327,7 @@ public class VideoActivity extends AppCompatActivity implements MediaPlayer.OnBu
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            //mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(2.0f));
         } catch (Exception e) {
             Log.e(TAG, "videoPrepareMediaPlayer, error=" + e.getMessage(), e);
             e.printStackTrace();

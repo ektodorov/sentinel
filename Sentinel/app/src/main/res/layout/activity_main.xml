@@ -88,6 +88,36 @@
             android:paddingRight="8dp"
             android:text="@string/picture_description"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:text="@string/privacy_policy"
+            android:id="@+id/buttonPrivacyPolicy"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:text="@string/disclaimer"
+            android:id="@+id/buttonDisclaimer"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:text="@string/terms_and_conditions"
+            android:id="@+id/buttonTermsAndConditions"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:text="@string/license"
+            android:id="@+id/buttonLicense"/>
+
     </LinearLayout>
 
 </ScrollView>

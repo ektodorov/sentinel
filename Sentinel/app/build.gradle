@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
+    namespace = "com.blogspot.techzealous.sentinel"
+    compileSdkVersion 36
     defaultConfig {
         applicationId "com.blogspot.techzealous.sentinel"
         minSdkVersion 23
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
