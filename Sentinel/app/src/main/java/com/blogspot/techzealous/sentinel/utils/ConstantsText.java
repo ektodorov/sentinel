@@ -140,6 +140,7 @@ public class ConstantsText {
             "\n" +
             "<p>Sentinel mobile app may contain links to external websites that are not provided or maintained by or in any way affiliated with </p>\n" +
             "\n" +
+            "<a href=\"https://www.flaticon.com/free-icons/web-cam\" title=\"web cam icons\">Web cam icons created by Freepik - Flaticon</a>" +
             "<p>Please note that the  does not guarantee the accuracy, relevance, timeliness, or completeness of any information on these external websites.</p>\n";
 
     public static final String TERMS_AND_CONDITIONS = "<!DOCTYPE html>\n" +
