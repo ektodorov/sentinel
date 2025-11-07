@@ -12,11 +12,18 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.blogspot.techzealous.sentinel.CameraActivity2;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import Catalano.Imaging.FastBitmap;
 import Catalano.Imaging.Filters.Difference;
 
 public class ImageUtils {
 
+//    public CameraActivity2 cameraActivity2;
     private static final String TAG = "ImageUtils";
 
     /**
@@ -147,6 +154,8 @@ public class ImageUtils {
         diff.applyInPlace(bitmapSource);
 
         Bitmap bitmapResult = bitmapSource.toBitmap();
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+//        CameraActivity2.saveImageToGallery(cameraActivity2, bitmapResult, timeStamp);
 
         int width = bitmapResult.getWidth();
         int height = bitmapResult.getHeight();
@@ -175,7 +184,8 @@ public class ImageUtils {
         maxY = (maxY * aSampleSize);
         //Log.i(TAG, "showDifference, minX=" + minX + ", minY=" + minY + ", maxX=" + maxX + ", maxY=" + maxY);
         Rect rect = new Rect(minX, minY, maxX, maxY);
-        Log.i(TAG, "getDifference, time=" + (System.currentTimeMillis() - timeStart) + "ms");
+//        Log.i(TAG, "getDifference, time=" + (System.currentTimeMillis() - timeStart) + "ms");
+//        Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", ImageUtils, getDifference, rect=" + rect);
         return rect;
     }
 

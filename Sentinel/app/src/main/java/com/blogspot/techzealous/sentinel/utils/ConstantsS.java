@@ -3,17 +3,19 @@ package com.blogspot.techzealous.sentinel.utils;
 import android.graphics.Color;
 import android.media.Ringtone;
 import android.os.Environment;
+import android.util.Log;
 
 public class ConstantsS {
 
     private static boolean sStabilizationEnabled = false;
     private static int sThresholdStabilization = 70;
-    private static int sThresholdDifference = 85;
+    private static int sThresholdDifference = -8421505;//max 100
     private static boolean sPlaySoundEnabled = false;
     private static boolean sRecordPictures = false;
     private static boolean sRecordVideos = true;
     private static Ringtone sRingtone;
 
+    public static final int THRESHOLD_DIFFERENCE_DEFAULT = 50;
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
     public static final String PREF_THRESHOLD_STABILIZATION = "thresholdstabilization";
     public static final String PREF_THRESHOLD_DIFFERENCE = "thresholddifference";
@@ -73,6 +75,8 @@ public class ConstantsS {
     public static void setThresholdDifference(int aSensitivity) {
         int colorPercent = (int)(255 * ((float)(100 - aSensitivity) / 100.0f));
         sThresholdDifference = Color.argb(255, colorPercent, colorPercent, colorPercent);
+        int colorWhite = Color.argb(255, 255, 255, 255);
+        int colorBlack = Color.argb(255, 0, 0, 0);
     }
 
     /**

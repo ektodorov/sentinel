@@ -2,11 +2,16 @@ package com.blogspot.techzealous.sentinel;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.Instrumentation;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -14,6 +19,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.PermissionChecker;
@@ -23,34 +30,25 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ConstantsText;
 
-import java.io.BufferedReader;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonLicense;
 
     private SharedPreferences mPrefs;
+    private ExecutorService mExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonDisclaimer = findViewById(R.id.buttonDisclaimer);
         mButtonTermsAndConditions = findViewById(R.id.buttonTermsAndConditions);
         mButtonLicense = findViewById(R.id.buttonLicense);
+        mExecutor = Executors.newSingleThreadExecutor();
 
         Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + String.valueOf(R.raw.beep07));
         Ringtone ringtone = RingtoneManager.getRingtone(this, soundUri);
@@ -206,10 +206,24 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         ConstantsS.setStabilizationEnabled(mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false));
         ConstantsS.setThresholdStabilization(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70));
-        ConstantsS.setThresholdDifference(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, 85));
+        ConstantsS.setThresholdDifference(mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, ConstantsS.THRESHOLD_DIFFERENCE_DEFAULT));
         ConstantsS.setPlaySoundEnabled(mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false));
         ConstantsS.setRecordPictures(mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false));
         ConstantsS.setRecordVideos(mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true));
+
+        Dialog dialog = showDialogLoading("Loading...");
+        final WeakReference<MainActivity> weakThis = new WeakReference<>(this);
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+                strongThis.copyFiles();
+                dialog.dismiss();
+            }
+        });
     }
 
     private void showDialog(String text) {
@@ -233,6 +247,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         adb.create().show();
+    }
+
+    private Dialog showDialogLoading(String text) {
+        LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = layoutInflater.inflate(R.layout.dialog_loading, null, false);
+        TextView textView = view.findViewById(R.id.textLoading);
+        textView.setText(text);
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setView(view);
+        adb.setCancelable(false);
+        Dialog dialog = adb.create();
+        dialog.show();
+        return dialog;
     }
 
     public static void requestStoragePermission(Activity activity, int requestCode) {
@@ -259,6 +287,22 @@ public class MainActivity extends AppCompatActivity {
             }
             if (permissions.size() != 0) {
                 ActivityCompat.requestPermissions(activity, permissions.toArray(new String[0]), requestCode);
+            }
+        }
+    }
+
+    //show a ProgressBar when this method starts and remove it when it ends. We shouldn't disable the back button, because the user may still use the home button or
+    //task manager to switch to another app or to force close the application.
+    //Or we can run this in the CameraActivity2 just not right after the record stops, but on every second record and not copying/deleting the current record.
+    private void copyFiles() {
+        File[] files = CameraActivity2.getAllFiles(this);
+        for(int x = 0; x < files.length; x++) {
+            try {
+                File file = files[x];
+                CameraActivity2.copyFileToVideoGallery(this, file);
+                file.delete();
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }

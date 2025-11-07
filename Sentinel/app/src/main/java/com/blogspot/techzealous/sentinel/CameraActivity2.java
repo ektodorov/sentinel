@@ -2,8 +2,13 @@ package com.blogspot.techzealous.sentinel;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -23,11 +28,14 @@ import android.hardware.camera2.CaptureRequest;
 import android.media.ImageReader;
 import android.media.MediaRecorder;
 import android.media.Ringtone;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
@@ -45,9 +53,11 @@ import com.blogspot.techzealous.sentinel.utils.ConstantsS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,8 +78,8 @@ public class CameraActivity2 extends AppCompatActivity {
    private static final int UPDATE_DIFF_INTERVAL_MS_WHILERECORDING = 10000;
    private static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 2000;
    private static int UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
-   private static final int RECORD_PICTURE_INTERVAL_MS = 500;//2 pictures per second
-   private static final int RECORD_VIDEO_INTERVAL_SECONDS = 15;//seconds
+   private static final int RECORD_PICTURE_INTERVAL_MS = 1000;//1 pictures per second
+   private static final int RECORD_VIDEO_INTERVAL_SECONDS = 5;//seconds
    private static final int FPS = 15;
    private static final int MB_FREE_MIN = 1024 * 1024 * 100;//100MB
    private static final int kSampleSize = 16;
@@ -89,6 +99,9 @@ public class CameraActivity2 extends AppCompatActivity {
    private HandlerThread backgroundHandlerThread;
    protected CaptureRequest.Builder captureRequestBuilder;
    protected CameraCaptureSession cameraCaptureSessions;
+    private Intent mServiceIntent;
+    private ServiceConnection mServiceConnection;
+    private CameraService2 mCameraService;
 
    private Handler mHandlerMain;
    private ExecutorService mExecutorDiff;
@@ -174,7 +187,7 @@ public class CameraActivity2 extends AppCompatActivity {
             if(ConstantsS.isStabilizationEnabled()) {
                Point pointOffset = imageUtils.stabilizeFrame(mBitmapPrevious, mBitmapCurrent, kSampleSize * 2);
                Rect rect = imageUtils.getDifference(pointOffset, mBitmapPrevious, mBitmapCurrent, kSampleSize,
-                       ConstantsS.getThresholdStabilization());
+                       ConstantsS.getThresholdDifference());
 
                //if there was no stabilization performed, we use the whole frame to look for movement
                if (rect.left < 0 || rect.top < 0 || rect.right < 0 || rect.bottom < 0
@@ -189,7 +202,6 @@ public class CameraActivity2 extends AppCompatActivity {
                   final boolean hasDiff = ImageUtils.hasDifference(rectDiff);
 
                   if(hasDiff) {
-                     //recordPicture(mBitmapCurrent.copy(Bitmap.Config.ARGB_8888, false));
                      recordStart(mTextureView);
                   }
                   mHandlerMain.post(new Runnable() {
@@ -245,6 +257,7 @@ public class CameraActivity2 extends AppCompatActivity {
                   });
                }
             } else {
+                //imageUtils.cameraActivity2 = weakThis.get();
                Rect rectDiff = imageUtils.getDifference(null, mBitmapPrevious, mBitmapCurrent, kSampleSize,
                        ConstantsS.getThresholdDifference());
 
@@ -350,6 +363,27 @@ public class CameraActivity2 extends AppCompatActivity {
             }
          }
       });
+
+       mServiceConnection = new ServiceConnection() {
+           @Override
+           public void onServiceConnected(ComponentName name, IBinder service) {
+               CameraActivity2 strongThis = weakThis.get();
+               if(strongThis == null) {
+                   return;
+               }
+               CameraService2Binder binder = (CameraService2Binder) service;
+               strongThis.mCameraService = binder.getCameraService();
+           }
+
+           @Override
+           public void onServiceDisconnected(ComponentName name) {
+               CameraActivity2 strongThis = weakThis.get();
+               if(strongThis == null) {
+                   return;
+               }
+               strongThis.mCameraService = null;
+           }
+       };
    }
 
    @Override
@@ -365,14 +399,24 @@ public class CameraActivity2 extends AppCompatActivity {
    @Override
    protected void onPause() {
       super.onPause();
-      closeCamera();
-      try {
-         backgroundHandlerThread.quitSafely();
-         backgroundHandlerThread.join();
-         backgroundHandlerThread = null;
-      } catch (InterruptedException e) {
-         e.printStackTrace();
-      }
+       closeCamera();
+       try {
+           backgroundHandlerThread.quitSafely();
+           backgroundHandlerThread.join();
+           backgroundHandlerThread = null;
+       } catch (InterruptedException e) {
+           e.printStackTrace();
+       }
+   }
+
+   @Override
+   protected void onStop() {
+       super.onStop();
+   }
+
+   @Override
+   protected void onDestroy() {
+       super.onDestroy();
    }
 
    @Override
@@ -424,6 +468,11 @@ public class CameraActivity2 extends AppCompatActivity {
          return;
       }
 
+      if(mFutureRecordStop != null) {mFutureRecordStop.cancel(false);}
+      mFutureRecordStop = mScheduledExecutorRecord.schedule(mRunnableRecordStop,
+              RECORD_VIDEO_INTERVAL_SECONDS,
+              TimeUnit.SECONDS);
+
       if(ConstantsS.getRecordPictures()) {
          recordPicture(aTextureView);
       } else if(ConstantsS.getRecordVideos()) {
@@ -441,17 +490,18 @@ public class CameraActivity2 extends AppCompatActivity {
 
    private void recordPicture(final TextureView aTextureView) {
       final WeakReference<CameraActivity2> weakThis = new WeakReference<>(this);
+      mIsRecording = true;
       mExecutorRecord.execute(new Runnable() {
          @Override
          public void run() {
             CameraActivity2 strongThis = weakThis.get();
+            if(strongThis == null) {
+                return;
+            }
+
             Date date = null;
             String time = null;
-            while(mIsRecording) {
-               File pictureFile = CameraActivity2.getFilePicture(strongThis, null, "jpg");
-               if (pictureFile == null){
-                  return;
-               }
+            while(strongThis.mIsRecording) {
                Bitmap bitmapTexture = aTextureView.getBitmap();
                if(bitmapTexture == null) {
                   return;
@@ -459,21 +509,15 @@ public class CameraActivity2 extends AppCompatActivity {
                Bitmap bitmap = bitmapTexture.copy(Bitmap.Config.ARGB_8888, true);
 
                date = new Date();
-               time = mDateFormat.format(date);
+               time = strongThis.mDateFormat.format(date);
                Canvas canvas = new Canvas(bitmap);
-               canvas.drawText(time, 10, 10, mPaintText);
+               canvas.drawText(time, 10, 10, strongThis.mPaintText);
+               //CameraActivity2.saveLocal(strongThis, bitmap, strongThis.mDateFormat, strongThis.mPaintText);
 
-               try {
-                  FileOutputStream fos = new FileOutputStream(pictureFile);
-                  bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
-                  fos.close();
-               } catch (FileNotFoundException e) {
-                  e.printStackTrace();
-               } catch (IOException e) {
-                  e.printStackTrace();
-               } finally {
-                  bitmap.recycle();
-               }
+               String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+               CameraActivity2.saveImageToGallery(strongThis, bitmap, timeStamp);
+
+               bitmap.recycle();
 
                try {
                   Thread.sleep(RECORD_PICTURE_INTERVAL_MS);
@@ -509,6 +553,18 @@ public class CameraActivity2 extends AppCompatActivity {
          initRecorder();
          createCameraPreview();
          UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
+
+//         final WeakReference<CameraActivity2> weakThis = new WeakReference<>(this);
+//         mExecutorRecord.execute(new Runnable() {
+//             @Override
+//             public void run() {
+//                 CameraActivity2 strongThis = weakThis.get();
+//                 if(strongThis == null) {
+//                     return;
+//                 }
+//                 copyFileToVideoGallery(strongThis, strongThis.mFileMediaRecorder);
+//             }
+//         });
       }
    }
 
@@ -688,7 +744,9 @@ public class CameraActivity2 extends AppCompatActivity {
          return;
       }
       File file = getFilePictureForVideo(this, mDateFormatFile.format(new Date()), "mp4");
-      Log.i(TAG, "initRecorder, 691, file=" + file);
+       Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", " + TAG + ", initRecorder, file=" + file);
+//      Uri uri = getFileForVideo(this, mDateFormatFile.format(new Date()));
+//      Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", " + TAG + ", initRecorder, uri=" + uri);
 
 //      recorder = new MediaRecorder();
 //      recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -718,6 +776,20 @@ public class CameraActivity2 extends AppCompatActivity {
          e.printStackTrace();
       }
       isMediaRecorderPrepared = true;
+   }
+
+   private void startService() {
+       mServiceIntent = new Intent(this, CameraService2.class);
+       bindService(mServiceIntent, mServiceConnection, Service.BIND_AUTO_CREATE);
+       startService(mServiceIntent);
+   }
+
+   private void stopService() {
+       if(mServiceIntent == null) {
+           mServiceIntent = new Intent(this, CameraService2.class);
+       }
+       stopService(mServiceIntent);
+       unbindService(mServiceConnection);
    }
 
    private static void deleteDirectory(String aDirectory) {
@@ -774,7 +846,9 @@ public class CameraActivity2 extends AppCompatActivity {
       File mediaStorageDir = getDirForPictures(context);
 
       if (!mediaStorageDir.exists()){
-         if (!mediaStorageDir.mkdirs()){return null;}
+         if (!mediaStorageDir.mkdirs()){
+             return null;
+         }
       }
 
       long freeSpace = mediaStorageDir.getFreeSpace();
@@ -841,4 +915,103 @@ public class CameraActivity2 extends AppCompatActivity {
       File filePicture = new File(mediaStorageDir.getPath() + File.separator + timeStamp + "." + aFileExtension);
       return filePicture;
    }
+
+   public static void saveLocal(Context context, Bitmap bitmap, SimpleDateFormat dateFormat, Paint paintText) {
+       File pictureFile = CameraActivity2.getFilePicture(context, null, "jpg");
+       if (pictureFile == null){
+           return;
+       }
+       Date date = new Date();
+       String time = dateFormat.format(date);
+       Canvas canvas = new Canvas(bitmap);
+       canvas.drawText(time, 10, 10, paintText);
+
+       try {
+           FileOutputStream fos = new FileOutputStream(pictureFile);
+           bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+           fos.close();
+       } catch (FileNotFoundException e) {
+           e.printStackTrace();
+       } catch (IOException e) {
+           e.printStackTrace();
+       } finally {
+           bitmap.recycle();
+       }
+   }
+
+   /**
+    * Saves a png image to Pictures directory
+    * @return the Uri of the saved file
+    */
+    public static Uri saveImageToGallery(Context context, Bitmap bitmap, String filename) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, (filename + ".png"));
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "Sentinel");
+
+        Uri imageUri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        if(imageUri == null) {
+            return null;
+        }
+        try (OutputStream outputStream = context.getContentResolver().openOutputStream(imageUri)) {
+            if(outputStream == null) {
+                return null;
+            }
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            outputStream.close();
+            return imageUri;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Uri getFileForVideo(Context context, String filename) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Video.Media.DISPLAY_NAME, (filename));//+ ".mp4"
+        values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+        values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + File.separator + "Sentinel");
+
+        Uri imageUri = context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+        return imageUri;
+    }
+
+    public static Uri copyFileToVideoGallery(Context context, File file) {
+        if(file == null || !file.exists()) {
+            return null;
+        }
+
+        Uri uri = getFileForVideo(context, file.getName());
+        if(uri != null) {
+            try (OutputStream outputStream = context.getContentResolver().openOutputStream(uri)) {
+                if(outputStream == null) {
+                    return null;
+                }
+                try {
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    byte[] buffer = new byte[8192];
+                    int read = 0;
+                    while ((read = fileInputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, read);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                outputStream.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return uri;
+    }
+
+    public static File[] getAllFiles(Context context) {
+        File mediaStorageDir = getDirForVideo(context);
+        if(!mediaStorageDir.exists()) {
+            return new File[0];
+        }
+        File[] files = mediaStorageDir.listFiles();
+        return files;
+    }
 }

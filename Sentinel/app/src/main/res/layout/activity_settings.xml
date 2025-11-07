@@ -39,6 +39,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:enabled="false"
                 android:id="@+id/checkBoxStabilizationSettings"/>
         </RelativeLayout>
 
@@ -82,6 +83,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:enabled="false"
                 android:id="@+id/checkBoxPlaySoundSettings"/>
         </RelativeLayout>
 
@@ -108,6 +110,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:enabled="false"
                 android:id="@+id/checkBoxRecordPicturesSettings"/>
 
             <TextView
@@ -146,6 +149,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:enabled="false"
                 android:id="@+id/checkBoxRecordVideosSettings"/>
 
             <TextView
