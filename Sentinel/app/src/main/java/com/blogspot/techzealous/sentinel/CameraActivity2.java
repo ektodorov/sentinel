@@ -75,11 +75,11 @@ import java.util.concurrent.TimeUnit;
 public class CameraActivity2 extends AppCompatActivity {
 
    private static final String TAG = "CameraActivity2";
-   private static final int UPDATE_DIFF_INTERVAL_MS_WHILERECORDING = 10000;
+   private static final int UPDATE_DIFF_INTERVAL_MS_WHILE_RECORDING = 10000;
    private static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 2000;
    private static int UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
    private static final int RECORD_PICTURE_INTERVAL_MS = 1000;//1 pictures per second
-   private static final int RECORD_VIDEO_INTERVAL_SECONDS = 5;//seconds
+   private static final int RECORD_VIDEO_INTERVAL_SECONDS = 15;//seconds
    private static final int FPS = 15;
    private static final int MB_FREE_MIN = 1024 * 1024 * 100;//100MB
    private static final int kSampleSize = 16;
@@ -536,7 +536,7 @@ public class CameraActivity2 extends AppCompatActivity {
       try {
          mediaRecorder.start();
          mIsRecording = true;
-         UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_WHILERECORDING;
+         UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_WHILE_RECORDING;
       } catch (IllegalStateException ex) {
          ex.printStackTrace();
       }

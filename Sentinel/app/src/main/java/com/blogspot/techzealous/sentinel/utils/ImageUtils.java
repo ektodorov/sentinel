@@ -101,7 +101,7 @@ public class ImageUtils {
     public Rect getDifference(Point aPointStabilizationOffset, Bitmap aBitmapPrev, Bitmap aBitmapCurrent,
             int aSampleSize, int aThreshold)
     {
-        long timeStart = System.currentTimeMillis();
+//        long timeStart = System.currentTimeMillis();
         Bitmap bitmapPrevious = null;
         Bitmap bitmapCurrent = null;
         int widthScaled= aBitmapCurrent.getWidth() / aSampleSize;
