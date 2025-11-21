@@ -33,6 +33,8 @@ public class SettingsActivity extends AppCompatActivity {
     private RelativeLayout mRelativeLayoutVideos;
     private TextView mTextViewRecordVideosDesc;
     private CheckBox mCheckBoxRecordVideos;
+    private RelativeLayout mRelativeLayoutBlankScreen;
+    private CheckBox mCheckBoxBlankScreen;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -56,6 +58,8 @@ public class SettingsActivity extends AppCompatActivity {
         mRelativeLayoutVideos = findViewById(R.id.relativeLayoutVideosSettings);
         mTextViewRecordVideosDesc = findViewById(R.id.textViewRecordVideosDescSettings);
         mCheckBoxRecordVideos = findViewById(R.id.checkBoxRecordVideosSettings);
+        mRelativeLayoutBlankScreen = findViewById(R.id.relativeLayoutBlankScreenSettings);
+        mCheckBoxBlankScreen = findViewById(R.id.checkBoxBlankScreenSettings);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
@@ -64,6 +68,7 @@ public class SettingsActivity extends AppCompatActivity {
         boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
         boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false);
         boolean isRecordVideos = mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true);
+        boolean isBlankScreen = mPrefs.getBoolean(ConstantsS.PREF_BLANK_SCREEN, true);
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "sentinel");
         mTextViewRecordPicturesDesc.setText(getResources().getString(R.string.record_description,
@@ -75,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
         mCheckBoxPlaySound.setChecked(isPlaySoundEnabled);
         mCheckBoxRecordPictures.setChecked(isRecordPictures);
         mCheckBoxRecordVideos.setChecked(isRecordVideos);
+        mCheckBoxBlankScreen.setChecked(isBlankScreen);
 
         mRelativeLayoutStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,6 +160,16 @@ public class SettingsActivity extends AppCompatActivity {
                 ConstantsS.setRecordVideos(isChecked);
                 //mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_PICTURES, !isChecked).commit();
                 mPrefs.edit().putBoolean(ConstantsS.PREF_RECORD_VIDEOS, isChecked).commit();
+            }
+        });
+
+        mRelativeLayoutBlankScreen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isChecked = !mCheckBoxBlankScreen.isChecked();
+                mCheckBoxBlankScreen.setChecked(isChecked);
+                ConstantsS.setPlaySoundEnabled(isChecked);
+                mPrefs.edit().putBoolean(ConstantsS.PREF_BLANK_SCREEN, isChecked).commit();
             }
         });
     }

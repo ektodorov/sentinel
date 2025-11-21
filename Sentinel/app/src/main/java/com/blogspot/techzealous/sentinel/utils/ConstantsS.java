@@ -22,6 +22,7 @@ public class ConstantsS {
     public static final String PREF_PLAY_SOUND = "playsound";
     public static final String PREF_RECORD_PICTURES = "recordpictures";
     public static final String PREF_RECORD_VIDEOS = "recordvideos";
+    public static final String PREF_BLANK_SCREEN = "blankscreen";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";

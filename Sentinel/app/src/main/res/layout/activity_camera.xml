@@ -24,4 +24,12 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:text="Start"/>
+
+    <RelativeLayout
+        android:id="@+id/layoutBlankScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:background="@android:color/black"
+        android:visibility="gone"/>
 </RelativeLayout>

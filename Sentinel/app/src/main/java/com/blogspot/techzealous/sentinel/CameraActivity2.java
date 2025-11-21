@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -35,6 +36,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -46,6 +48,7 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -89,6 +92,7 @@ public class CameraActivity2 extends AppCompatActivity {
    private ImageView mImageViewDiff;
    private TextureView mTextureView;
    private Button mButtonStart;
+   private ViewGroup mLayoutBlankScreen;
 
    private CameraDevice mCameraDevice;
    private ImageReader imageReader;
@@ -130,6 +134,7 @@ public class CameraActivity2 extends AppCompatActivity {
       mImageViewDiff = findViewById(R.id.imageViewCameraActivity);
       mTextureView = findViewById(R.id.textureViewCameraActivity);
       mButtonStart = findViewById(R.id.buttonStart);
+      mLayoutBlankScreen = findViewById(R.id.layoutBlankScreen);
 
       if(!checkCameraHardware(this)) {
          AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -356,7 +361,6 @@ public class CameraActivity2 extends AppCompatActivity {
                stopRecordingPreview();
                initRecorder();
                createCameraPreview();
-
             } else {
                mButtonStart.setText("Stop");
                recordVideo();
@@ -624,13 +628,21 @@ public class CameraActivity2 extends AppCompatActivity {
    }
 
    protected void createCameraPreview() {
+       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+       boolean isBlankScreen = prefs.getBoolean(ConstantsS.PREF_BLANK_SCREEN, true);
+       if(isBlankScreen) {
+           mLayoutBlankScreen.setVisibility(View.VISIBLE);
+       } else {
+           mLayoutBlankScreen.setVisibility(View.GONE);
+       }
+
       try {
          CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
          CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraDevice.getId());
          Size[] sizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getHighSpeedVideoSizes();
          if(sizes != null) {
             for(Size size : sizes) {
-               Log.i(TAG, "CameraActivity2, 606, createCameraPreview size=" + size);
+               Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, createCameraPreview size=" + size);
             }
          }
 
@@ -671,7 +683,7 @@ public class CameraActivity2 extends AppCompatActivity {
             }
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-               Log.i(TAG, "CameraActivity2, 620, onConfigureFailed");
+               Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, onConfigureFailed");
             }
          }, null);
       } catch (CameraAccessException e) {
@@ -853,7 +865,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
       }
 
@@ -878,7 +890,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(getDirForPictures(context), 9);
       }
 
@@ -907,7 +919,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, "getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
       }
 

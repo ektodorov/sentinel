@@ -11,18 +11,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="8dp"
         android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingEnd="16dp"
         android:orientation="vertical"
         android:id="@+id/linearLayoutRootSettings">
 
         <RelativeLayout
             android:id="@+id/relativeLayoutStabilizationSettings"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:paddingRight="16dp"
-            android:paddingEnd="16dp">
+            android:layout_height="70dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -37,7 +34,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:enabled="false"
                 android:id="@+id/checkBoxStabilizationSettings"/>
@@ -64,9 +60,7 @@
         <RelativeLayout
             android:id="@+id/relativeLayoutPlaySoundSettings"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:paddingRight="16dp"
-            android:paddingEnd="16dp">
+            android:layout_height="70dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -75,13 +69,14 @@
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
                 android:text="@string/play_sound_enabled"
-                android:id="@+id/textViewPlaySoundSettings"/>
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/checkBoxPlaySoundSettings"
+                android:id="@+id/textViewPlaySoundSettings" />
 
             <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:enabled="false"
                 android:id="@+id/checkBoxPlaySoundSettings"/>
@@ -90,15 +85,12 @@
         <RelativeLayout
             android:id="@+id/relativeLayoutPicturesSettings"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingEnd="16dp"
-            android:paddingRight="16dp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toStartOf="@+id/checkBoxRecordPicturesSettings"
-                android:layout_toLeftOf="@+id/checkBoxRecordPicturesSettings"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
                 android:text="@string/record_pictures"
@@ -108,7 +100,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:enabled="false"
                 android:id="@+id/checkBoxRecordPicturesSettings"/>
@@ -119,7 +110,6 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/textViewRecordPicturesSettings"
                 android:layout_toStartOf="@+id/checkBoxRecordPicturesSettings"
-                android:layout_toLeftOf="@+id/checkBoxRecordPicturesSettings"
                 android:text="@string/record_description"/>
 
         </RelativeLayout>
@@ -137,7 +127,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toStartOf="@+id/checkBoxRecordVideosSettings"
-                android:layout_toLeftOf="@+id/checkBoxRecordVideosSettings"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
                 android:text="@string/record_videos"
@@ -147,7 +136,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:enabled="false"
                 android:id="@+id/checkBoxRecordVideosSettings"/>
@@ -158,9 +146,34 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/textViewRecordVideosSettings"
                 android:layout_toStartOf="@+id/checkBoxRecordVideosSettings"
-                android:layout_toLeftOf="@+id/checkBoxRecordVideosSettings"
                 android:text="@string/record_description"/>
+        </RelativeLayout>
 
+        <RelativeLayout
+            android:id="@+id/relativeLayoutBlankScreenSettings"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:text="@string/blank_screen"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/checkBoxBlankScreenSettings"
+                android:id="@+id/textViewBlankScreenSettings" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:enabled="false"
+                android:id="@+id/checkBoxBlankScreenSettings"/>
         </RelativeLayout>
 
     </LinearLayout>
