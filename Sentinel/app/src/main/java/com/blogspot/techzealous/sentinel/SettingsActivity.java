@@ -35,10 +35,12 @@ public class SettingsActivity extends AppCompatActivity {
     private CheckBox mCheckBoxRecordVideos;
     private RelativeLayout mRelativeLayoutBlankScreen;
     private CheckBox mCheckBoxBlankScreen;
+    private TextView mTextViewDifferenceUpdate;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
     private int mThresholdDifference;
+    private int mDifferenceUpdate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +62,13 @@ public class SettingsActivity extends AppCompatActivity {
         mCheckBoxRecordVideos = findViewById(R.id.checkBoxRecordVideosSettings);
         mRelativeLayoutBlankScreen = findViewById(R.id.relativeLayoutBlankScreenSettings);
         mCheckBoxBlankScreen = findViewById(R.id.checkBoxBlankScreenSettings);
+        mTextViewDifferenceUpdate = findViewById(R.id.textViewDifferenceUpdate);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
         mThresholdStabilization = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_STABILIZATION, 70);
         mThresholdDifference = mPrefs.getInt(ConstantsS.PREF_THRESHOLD_DIFFERENCE, ConstantsS.THRESHOLD_DIFFERENCE_DEFAULT);
+        mDifferenceUpdate = mPrefs.getInt(ConstantsS.PREF_DIFFERENCE_UPDATE_MS, CameraActivity2.UPDATE_DIFF_INTERVAL_MS_NORMAL);
         boolean isPlaySoundEnabled = mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false);
         boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false);
         boolean isRecordVideos = mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true);
@@ -170,6 +174,26 @@ public class SettingsActivity extends AppCompatActivity {
                 mCheckBoxBlankScreen.setChecked(isChecked);
                 ConstantsS.setPlaySoundEnabled(isChecked);
                 mPrefs.edit().putBoolean(ConstantsS.PREF_BLANK_SCREEN, isChecked).commit();
+            }
+        });
+
+        mTextViewDifferenceUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogSlider dialog = new DialogSlider("Difference Update",
+                        "Check for difference (seconds)", new OnValueSetListener() {
+                    @Override
+                    public void onValueSet(int aValue) {
+                        if(aValue < 1) {
+                            aValue = 1;
+                        }
+                        ConstantsS.setDifferenceUpdate(aValue * 1000);
+                        mDifferenceUpdate = aValue;
+                        mPrefs.edit().putInt(ConstantsS.PREF_DIFFERENCE_UPDATE_MS, aValue).commit();
+                    }
+                });
+                dialog.createAlertDialog(SettingsActivity.this, mLinearLayoutRoot, mDifferenceUpdate, 4);
+                dialog.showDialog();
             }
         });
     }

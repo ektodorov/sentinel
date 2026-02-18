@@ -176,5 +176,14 @@
                 android:id="@+id/checkBoxBlankScreenSettings"/>
         </RelativeLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:gravity="center_vertical"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:text="@string/difference_update"
+            android:id="@+id/textViewDifferenceUpdate"/>
+
     </LinearLayout>
 </ScrollView>

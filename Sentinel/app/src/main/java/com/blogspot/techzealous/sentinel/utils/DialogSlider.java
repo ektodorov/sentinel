@@ -30,11 +30,17 @@ public class DialogSlider {
     private Handler mHandlerMain;
     private Runnable mRunnableProgressDecrease;
     private Runnable mRunnableProgressIncrease;
+    private int mProgressMax  = 100;
 
     public DialogSlider(String aTitle, String aMessage, OnValueSetListener aOnValueSetListener) {
         mTitle = aTitle;
         mMessage = aMessage;
         mOnValueSet = aOnValueSetListener;
+    }
+
+    public void createAlertDialog(Context aContext, ViewGroup aViewRoot, int aProgress, int aProgressMax) {
+        mProgressMax = aProgressMax;
+        createAlertDialog(aContext, aViewRoot, aProgress);
     }
 
     public void createAlertDialog(Context aContext, ViewGroup aViewRoot, int aProgress) {
@@ -122,6 +128,7 @@ public class DialogSlider {
         });
 
         mTextViewProgress.setText(String.valueOf(aProgress));
+        mSeekBar.setMax(mProgressMax);
         mSeekBar.setProgress(aProgress);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -146,5 +153,10 @@ public class DialogSlider {
 
     public AlertDialog getAlertDialog() {
         return mAlertDialog;
+    }
+
+    public void setProgressMax(int progressMax) {
+        mProgressMax = progressMax;
+        mSeekBar.setMax(mProgressMax);
     }
 }

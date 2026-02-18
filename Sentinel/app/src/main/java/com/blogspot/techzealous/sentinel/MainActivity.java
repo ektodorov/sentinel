@@ -210,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
         ConstantsS.setPlaySoundEnabled(mPrefs.getBoolean(ConstantsS.PREF_PLAY_SOUND, false));
         ConstantsS.setRecordPictures(mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false));
         ConstantsS.setRecordVideos(mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true));
+        ConstantsS.setDifferenceUpdate(mPrefs.getInt(ConstantsS.PREF_DIFFERENCE_UPDATE_MS, CameraActivity2.UPDATE_DIFF_INTERVAL_MS_NORMAL));
 
         Dialog dialog = showDialogLoading("Loading...");
         final WeakReference<MainActivity> weakThis = new WeakReference<>(this);

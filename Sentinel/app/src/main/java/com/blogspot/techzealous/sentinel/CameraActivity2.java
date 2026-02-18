@@ -79,7 +79,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
    private static final String TAG = "CameraActivity2";
    private static final int UPDATE_DIFF_INTERVAL_MS_WHILE_RECORDING = 10000;
-   private static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 2000;
+   public static final int UPDATE_DIFF_INTERVAL_MS_NORMAL = 1000;
    private static int UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
    private static final int RECORD_PICTURE_INTERVAL_MS = 1000;//1 pictures per second
    private static final int RECORD_VIDEO_INTERVAL_SECONDS = 15;//seconds
@@ -122,6 +122,8 @@ public class CameraActivity2 extends AppCompatActivity {
    private SimpleDateFormat mDateFormat;
    private SimpleDateFormat mDateFormatFile;
    private Paint mPaintText;
+   private SharedPreferences mPrefs;
+   private int mDifferenceUpdate;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +160,9 @@ public class CameraActivity2 extends AppCompatActivity {
       mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
       mPaintText.setColor(Color.WHITE);
       mPaintText.setTextSize(12 * getResources().getDisplayMetrics().density);
+      mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+      UPDATE_DIFF_INTERVAL_MS = ConstantsS.getDifferenceUpdate();
 
       mRunnableDiffPost = new Runnable() {
          @Override
@@ -556,7 +561,7 @@ public class CameraActivity2 extends AppCompatActivity {
          stopRecordingPreview();
          initRecorder();
          createCameraPreview();
-         UPDATE_DIFF_INTERVAL_MS = UPDATE_DIFF_INTERVAL_MS_NORMAL;
+         UPDATE_DIFF_INTERVAL_MS = mDifferenceUpdate;
 
 //         final WeakReference<CameraActivity2> weakThis = new WeakReference<>(this);
 //         mExecutorRecord.execute(new Runnable() {

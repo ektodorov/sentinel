@@ -14,6 +14,7 @@ public class ConstantsS {
     private static boolean sRecordPictures = false;
     private static boolean sRecordVideos = true;
     private static Ringtone sRingtone;
+    private static int sDifferenceUpdate = 2000;
 
     public static final int THRESHOLD_DIFFERENCE_DEFAULT = 50;
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
@@ -23,6 +24,7 @@ public class ConstantsS {
     public static final String PREF_RECORD_PICTURES = "recordpictures";
     public static final String PREF_RECORD_VIDEOS = "recordvideos";
     public static final String PREF_BLANK_SCREEN = "blankscreen";
+    public static final String PREF_DIFFERENCE_UPDATE_MS = "differenceupdatems";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";
@@ -59,6 +61,14 @@ public class ConstantsS {
     public static void setThresholdStabilization(int aSensitivity) {
         int colorPercent = (int)(255 * ((float)(100 - aSensitivity) / 100.0f));
         sThresholdStabilization = Color.argb(255, colorPercent, colorPercent, colorPercent);
+    }
+
+    public static void setDifferenceUpdate(int aValue) {
+        sDifferenceUpdate = aValue;
+    }
+
+    public static int getDifferenceUpdate() {
+        return sDifferenceUpdate;
     }
 
     /**
