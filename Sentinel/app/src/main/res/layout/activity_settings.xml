@@ -117,11 +117,7 @@
         <RelativeLayout
             android:id="@+id/relativeLayoutVideosSettings"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="0dp"
-            android:paddingEnd="16dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:layout_width="match_parent"
@@ -152,9 +148,7 @@
         <RelativeLayout
             android:id="@+id/relativeLayoutBlankScreenSettings"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:paddingStart="0dp"
-            android:paddingEnd="16dp">
+            android:layout_height="70dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -197,14 +191,11 @@
         <RelativeLayout
             android:id="@+id/relativeLayoutDeviceAdmin"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:paddingStart="0dp"
-            android:paddingEnd="16dp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
                 android:text="@string/enable_device_admin"
@@ -219,6 +210,14 @@
                 android:layout_centerVertical="true"
                 android:enabled="false"
                 android:id="@+id/checkBoxDeviceAdmin"/>
+
+            <TextView
+                android:id="@+id/textViewDeviceAdminDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textViewDeviceAdmin"
+                android:layout_toStartOf="@+id/checkBoxDeviceAdmin"
+                android:text="@string/enable_device_admin_description"/>
         </RelativeLayout>
 
     </LinearLayout>

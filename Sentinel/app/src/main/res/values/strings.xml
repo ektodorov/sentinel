@@ -34,4 +34,5 @@
     <string name="difference_update">Difference update interval</string>
     <string name="background_record_time">Background record time</string>
     <string name="enable_device_admin">Enable device admin</string>
+    <string name="enable_device_admin_description">Locks device screen when application goes to background on Camera recording.</string>
 </resources>
