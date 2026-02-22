@@ -222,9 +222,6 @@ public class SettingsActivity extends AppCompatActivity {
                         "Record in background (minutes)", new OnValueSetListener() {
                     @Override
                     public void onValueSet(int aValue) {
-                        if(aValue < 1) {
-                            aValue = 1;
-                        }
                         ConstantsS.setBackgroundRecordTime(aValue);
                         mPrefs.edit().putInt(ConstantsS.PREF_BACKGROUND_RECORD_TIME, aValue).commit();
                     }
