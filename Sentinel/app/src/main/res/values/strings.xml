@@ -32,4 +32,6 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="blank_screen">Blank Screen</string>
     <string name="difference_update">Difference update interval</string>
+    <string name="background_record_time">Background record time</string>
+    <string name="enable_device_admin">Enable device admin</string>
 </resources>

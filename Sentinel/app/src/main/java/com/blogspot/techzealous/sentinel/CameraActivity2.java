@@ -3,6 +3,7 @@ package com.blogspot.techzealous.sentinel;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Service;
+import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -36,10 +37,12 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -49,10 +52,11 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebViewFragment;
 import android.widget.Button;
 import android.widget.ImageView;
-
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
+import com.blogspot.techzealous.sentinel.utils.DeviceAdminReceiverS;
 import com.blogspot.techzealous.sentinel.utils.ImageUtils;
 
 import java.io.File;
@@ -110,6 +114,7 @@ public class CameraActivity2 extends AppCompatActivity {
    private Handler mHandlerMain;
    private ExecutorService mExecutorDiff;
    private ExecutorService mExecutorRecord;
+   private ExecutorService mExecutorService;
    private ScheduledExecutorService mScheduledExecutorRecord;
    private Future<?> mFutureRecordStop;
    private Runnable mRunnableDiffPost;
@@ -124,6 +129,8 @@ public class CameraActivity2 extends AppCompatActivity {
    private Paint mPaintText;
    private SharedPreferences mPrefs;
    private int mDifferenceUpdate;
+   private PowerManager.WakeLock mWakeLock;
+   private boolean startWakeLock = true;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +162,7 @@ public class CameraActivity2 extends AppCompatActivity {
       mExecutorDiff = Executors.newSingleThreadExecutor();
       mExecutorRecord = Executors.newSingleThreadExecutor();
       mScheduledExecutorRecord = Executors.newSingleThreadScheduledExecutor();
+      mExecutorService = Executors.newSingleThreadExecutor();
       mDateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault());
       mDateFormatFile = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
       mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -398,6 +406,8 @@ public class CameraActivity2 extends AppCompatActivity {
    @Override
    protected void onResume() {
       super.onResume();
+      startWakeLock = ConstantsS.getBackgroundRecordTime() > 0;
+      wakeLockRelease();
       if(backgroundHandlerThread == null) {
          backgroundHandlerThread = new HandlerThread("videocapture");
          backgroundHandlerThread.start();
@@ -408,6 +418,11 @@ public class CameraActivity2 extends AppCompatActivity {
    @Override
    protected void onPause() {
       super.onPause();
+      if(startWakeLock) {
+         wakeLock();
+         return;
+      }
+
        closeCamera();
        try {
            backgroundHandlerThread.quitSafely();
@@ -416,6 +431,14 @@ public class CameraActivity2 extends AppCompatActivity {
        } catch (InterruptedException e) {
            e.printStackTrace();
        }
+
+      if(ConstantsS.isDeviceAdmin()) {
+         ComponentName cn = new ComponentName(this, DeviceAdminReceiverS.class);
+         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+         if (devicePolicyManager.isAdminActive(cn)) {
+            devicePolicyManager.lockNow();
+         }
+      }
    }
 
    @Override
@@ -436,6 +459,12 @@ public class CameraActivity2 extends AppCompatActivity {
       } else if(requestCode == REQUEST_CODE_CAMERA) {
 
       }
+   }
+
+   @Override
+   public void onBackPressed() {
+      super.onBackPressed();
+      startWakeLock = false;
    }
 
    private boolean checkCameraHardware(Context context) {
@@ -647,7 +676,7 @@ public class CameraActivity2 extends AppCompatActivity {
          Size[] sizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getHighSpeedVideoSizes();
          if(sizes != null) {
             for(Size size : sizes) {
-               Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, createCameraPreview size=" + size);
+               Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber() + ", createCameraPreview size=" + size);
             }
          }
 
@@ -688,7 +717,7 @@ public class CameraActivity2 extends AppCompatActivity {
             }
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-               Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, onConfigureFailed");
+               Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber() + ", onConfigureFailed");
             }
          }, null);
       } catch (CameraAccessException e) {
@@ -761,7 +790,7 @@ public class CameraActivity2 extends AppCompatActivity {
          return;
       }
       File file = getFilePictureForVideo(this, mDateFormatFile.format(new Date()), "mp4");
-       Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", " + TAG + ", initRecorder, file=" + file);
+       Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber()+ ", initRecorder, file=" + file);
 //      Uri uri = getFileForVideo(this, mDateFormatFile.format(new Date()));
 //      Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", " + TAG + ", initRecorder, uri=" + uri);
 
@@ -870,7 +899,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber() + ", getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
       }
 
@@ -895,7 +924,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber() + ", getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(getDirForPictures(context), 9);
       }
 
@@ -924,7 +953,7 @@ public class CameraActivity2 extends AppCompatActivity {
 
       long freeSpace = mediaStorageDir.getFreeSpace();
       if(freeSpace < MB_FREE_MIN) {
-         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getLineNumber() + ", CameraActivity2, getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
+         Log.i(TAG, "CameraActivity2.java:" + Thread.currentThread().getStackTrace()[2].getLineNumber() + ", getFilePicture, Low on disk storage, freeSpace=" + freeSpace + ", bytes");
          freeUpSpace(mediaStorageDir, 9);
       }
 
@@ -1031,4 +1060,19 @@ public class CameraActivity2 extends AppCompatActivity {
         File[] files = mediaStorageDir.listFiles();
         return files;
     }
+
+   private void wakeLock() {
+       wakeLockRelease();
+
+       PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+       mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Sentinel:CameraActivity2");
+       mWakeLock.acquire(ConstantsS.getBackgroundRecordTime() * 60 * 1000L);
+   }
+
+   private void wakeLockRelease() {
+       if(mWakeLock != null) {
+          mWakeLock.release();
+          mWakeLock = null;
+       }
+   }
 }

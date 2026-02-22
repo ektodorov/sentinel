@@ -211,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
         ConstantsS.setRecordPictures(mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false));
         ConstantsS.setRecordVideos(mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true));
         ConstantsS.setDifferenceUpdate(mPrefs.getInt(ConstantsS.PREF_DIFFERENCE_UPDATE_MS, CameraActivity2.UPDATE_DIFF_INTERVAL_MS_NORMAL));
+        ConstantsS.setBackgroundRecordTime(mPrefs.getInt(ConstantsS.PREF_BACKGROUND_RECORD_TIME,  ConstantsS.getBackgroundRecordTime()));
+        ConstantsS.setDeviceAdmin(mPrefs.getBoolean(ConstantsS.PREF_DEVICE_ADMIN, ConstantsS.isDeviceAdmin()));
 
         Dialog dialog = showDialogLoading("Loading...");
         final WeakReference<MainActivity> weakThis = new WeakReference<>(this);

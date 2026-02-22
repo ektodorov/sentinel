@@ -185,5 +185,41 @@
             android:text="@string/difference_update"
             android:id="@+id/textViewDifferenceUpdate"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:gravity="center_vertical"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:text="@string/background_record_time"
+            android:id="@+id/textViewBackgroundRecordTime"/>
+
+        <RelativeLayout
+            android:id="@+id/relativeLayoutDeviceAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:text="@string/enable_device_admin"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/checkBoxDeviceAdmin"
+                android:id="@+id/textViewDeviceAdmin" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:enabled="false"
+                android:id="@+id/checkBoxDeviceAdmin"/>
+        </RelativeLayout>
+
     </LinearLayout>
 </ScrollView>

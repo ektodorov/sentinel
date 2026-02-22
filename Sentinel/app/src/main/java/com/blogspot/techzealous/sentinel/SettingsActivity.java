@@ -1,10 +1,16 @@
 package com.blogspot.techzealous.sentinel;
 
+import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -12,10 +18,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.blogspot.techzealous.sentinel.utils.ConstantsS;
+import com.blogspot.techzealous.sentinel.utils.DeviceAdminReceiverS;
 import com.blogspot.techzealous.sentinel.utils.DialogSlider;
 import com.blogspot.techzealous.sentinel.utils.OnValueSetListener;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -36,6 +44,9 @@ public class SettingsActivity extends AppCompatActivity {
     private RelativeLayout mRelativeLayoutBlankScreen;
     private CheckBox mCheckBoxBlankScreen;
     private TextView mTextViewDifferenceUpdate;
+    private TextView mTextViewBackgroundRecordTime;
+    private RelativeLayout mRelativeLayoutDeviceAdmin;
+    private CheckBox mCheckBoxDeviceAdmin;
 
     private SharedPreferences mPrefs;
     private int mThresholdStabilization;
@@ -63,6 +74,9 @@ public class SettingsActivity extends AppCompatActivity {
         mRelativeLayoutBlankScreen = findViewById(R.id.relativeLayoutBlankScreenSettings);
         mCheckBoxBlankScreen = findViewById(R.id.checkBoxBlankScreenSettings);
         mTextViewDifferenceUpdate = findViewById(R.id.textViewDifferenceUpdate);
+        mTextViewBackgroundRecordTime = findViewById(R.id.textViewBackgroundRecordTime);
+        mRelativeLayoutDeviceAdmin = findViewById(R.id.relativeLayoutDeviceAdmin);
+        mCheckBoxDeviceAdmin = findViewById(R.id.checkBoxDeviceAdmin);
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         boolean isStabilizationEnabled = mPrefs.getBoolean(ConstantsS.PREF_STABILIZATION_ENABLED, false);
@@ -73,6 +87,8 @@ public class SettingsActivity extends AppCompatActivity {
         boolean isRecordPictures = mPrefs.getBoolean(ConstantsS.PREF_RECORD_PICTURES, false);
         boolean isRecordVideos = mPrefs.getBoolean(ConstantsS.PREF_RECORD_VIDEOS, true);
         boolean isBlankScreen = mPrefs.getBoolean(ConstantsS.PREF_BLANK_SCREEN, true);
+        int backgroundRecordTime = mPrefs.getInt(ConstantsS.PREF_BACKGROUND_RECORD_TIME, ConstantsS.getBackgroundRecordTime());
+        boolean isDeviceAdmin = mPrefs.getBoolean(ConstantsS.PREF_DEVICE_ADMIN, ConstantsS.isDeviceAdmin());
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "sentinel");
         mTextViewRecordPicturesDesc.setText(getResources().getString(R.string.record_description,
@@ -85,7 +101,9 @@ public class SettingsActivity extends AppCompatActivity {
         mCheckBoxRecordPictures.setChecked(isRecordPictures);
         mCheckBoxRecordVideos.setChecked(isRecordVideos);
         mCheckBoxBlankScreen.setChecked(isBlankScreen);
+        mCheckBoxDeviceAdmin.setChecked(isDeviceAdmin);
 
+        final WeakReference<SettingsActivity> weakThis = new WeakReference<>(this);
         mRelativeLayoutStabilization.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -194,6 +212,51 @@ public class SettingsActivity extends AppCompatActivity {
                 });
                 dialog.createAlertDialog(SettingsActivity.this, mLinearLayoutRoot, mDifferenceUpdate, 4);
                 dialog.showDialog();
+            }
+        });
+
+        mTextViewBackgroundRecordTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogSlider dialog = new DialogSlider("Background record time",
+                        "Record in background (minutes)", new OnValueSetListener() {
+                    @Override
+                    public void onValueSet(int aValue) {
+                        if(aValue < 1) {
+                            aValue = 1;
+                        }
+                        ConstantsS.setBackgroundRecordTime(aValue);
+                        mPrefs.edit().putInt(ConstantsS.PREF_BACKGROUND_RECORD_TIME, aValue).commit();
+                    }
+                });
+                dialog.createAlertDialog(SettingsActivity.this, mLinearLayoutRoot, ConstantsS.getBackgroundRecordTime(), 1440);
+                dialog.showDialog();
+            }
+        });
+
+        mRelativeLayoutDeviceAdmin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SettingsActivity strongThis = weakThis.get();
+                if(strongThis == null) {
+                    return;
+                }
+
+                boolean isChecked = !strongThis.mCheckBoxDeviceAdmin.isChecked();
+                strongThis.mCheckBoxDeviceAdmin.setChecked(isChecked);
+                ConstantsS.setDeviceAdmin(isChecked);
+                strongThis.mPrefs.edit().putBoolean(ConstantsS.PREF_DEVICE_ADMIN, isChecked).commit();
+
+                ComponentName cn = new ComponentName(strongThis, DeviceAdminReceiverS.class);
+                if(isChecked) {
+                    Intent i = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                    i.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cn);
+                    i.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Now");
+                    strongThis.startActivity(i);
+                } else {
+                    DevicePolicyManager devicePolicyManager = (DevicePolicyManager) strongThis.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                    devicePolicyManager.removeActiveAdmin(cn);
+                }
             }
         });
     }

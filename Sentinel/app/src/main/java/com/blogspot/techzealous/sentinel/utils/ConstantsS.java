@@ -15,6 +15,8 @@ public class ConstantsS {
     private static boolean sRecordVideos = true;
     private static Ringtone sRingtone;
     private static int sDifferenceUpdate = 2000;
+    private static int sBackgroundRecordTime = 150;
+    private static boolean sDeviceAdmin = false;
 
     public static final int THRESHOLD_DIFFERENCE_DEFAULT = 50;
     public static final String PREF_STABILIZATION_ENABLED = "stabilizationenabled";
@@ -25,6 +27,8 @@ public class ConstantsS {
     public static final String PREF_RECORD_VIDEOS = "recordvideos";
     public static final String PREF_BLANK_SCREEN = "blankscreen";
     public static final String PREF_DIFFERENCE_UPDATE_MS = "differenceupdatems";
+    public static final String PREF_BACKGROUND_RECORD_TIME = "backgroundrecordtime";
+    public static final String PREF_DEVICE_ADMIN = "deviceadmin";
 
     public static final String STR_MIME_TYPE_IMAGE = "image/*";
     public static final String STR_MIME_TYPE_VIDEO = "video/*";
@@ -117,6 +121,22 @@ public class ConstantsS {
     public static boolean getRecordVideos() {return sRecordVideos;}
 
     public static void setRecordVideos(boolean aIsRecordVideos) {sRecordVideos = aIsRecordVideos;}
+
+    public static int getBackgroundRecordTime() {
+        return sBackgroundRecordTime;
+    }
+
+    public static void setBackgroundRecordTime(int backgroundRecordTime) {
+        ConstantsS.sBackgroundRecordTime = backgroundRecordTime;
+    }
+
+    public static boolean isDeviceAdmin() {
+        return sDeviceAdmin;
+    }
+
+    public static void setDeviceAdmin(boolean deviceAdmin) {
+        ConstantsS.sDeviceAdmin = deviceAdmin;
+    }
 
     public static boolean isExternalStorageAvailable() {
         String state = Environment.getExternalStorageState();
